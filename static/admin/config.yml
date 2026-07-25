@@ -1,8 +1,4 @@
-# Decap CMS — Devyn's content editor at /admin/
-#
-# AUTH (one-time, Kevin): once hosted on Netlify, switch to the git-gateway
-# backend (commented below) + enable Identity, then invite Devyn by email.
-# Until then the github backend needs an OAuth app (see README).
+# Devyn's content editor at /admin/ — Sveltia CMS (Decap-compatible config)
 backend:
   name: git-gateway
   branch: main
@@ -12,7 +8,8 @@ backend:
 #   repo: Kevin-Mentatix/devynunderwater
 #   branch: main
 
-# For local testing without auth: npx decap-server  (then open /admin/)
+# Local review without login: the editor offers "Work with Local Repository"
+# in Chrome, or run: npx decap-server
 local_backend: true
 
 site_url: https://www.devynunderwater.com
@@ -22,68 +19,48 @@ media_folder: "uploads"
 public_folder: "/uploads"
 
 collections:
-  - name: site
-    label: "Website Content"
+  # ─────────── PHOTOS: one card per photo ───────────
+  - name: photos
+    label: "Photos"
+    label_singular: "Photo"
+    folder: "content/photos"
+    extension: json
+    format: json
+    create: true
+    identifier_field: title
+    summary: "{{title}}"
+    thumbnail: image
+    sortable_fields: [title, set, heroOrder, saleOrder]
+    view_groups:
+      - { label: "Collection", field: set }
+      - { label: "For sale", field: forSale }
+    fields:
+      - { label: "Title", name: title, widget: string }
+      - label: "Collection"
+        name: set
+        widget: select
+        options:
+          - { label: "2023–24 Season", value: s24 }
+          - { label: "2024–25 Season", value: s25 }
+          - { label: "2026 Season", value: s26 }
+        hint: "Which gallery filter this photo appears under"
+      - { label: "Image (upload your JPG — new photos only)", name: image, widget: image, required: false, hint: "Existing photos already have their image on the site; leave empty unless replacing." }
+      - { label: "Hero slideshow position (blank = not in slideshow)", name: heroOrder, widget: number, required: false, value_type: int, min: 1 }
+      - { label: "Homepage featured strip position (blank = not featured)", name: featuredOrder, widget: number, required: false, value_type: int, min: 1 }
+      - { label: "Sell as a print?", name: forSale, widget: boolean, required: false, default: false }
+      - { label: "Print story (shown on its shop page)", name: story, widget: text, required: false, hint: "Only used when selling" }
+      - { label: "Fine Art America artwork URL", name: faaUrl, widget: string, required: false, default: "", hint: "Paste from your FAA account — buy buttons appear automatically" }
+      - { label: "Shop position", name: saleOrder, widget: number, required: false, value_type: int, min: 1 }
+      - { label: "Web address (auto — leave alone)", name: slug, widget: string, required: false }
+
+  # ─────────── SITE SETTINGS ───────────
+  - name: settings
+    label: "Site Settings & Copy"
     files:
       - name: main
-        label: "All content (photos, shop, copy)"
+        label: "Copy, links & homepage"
         file: "data/site.json"
         fields:
-          # ---------- photos ----------
-          - label: "Photo Gallery"
-            name: gallery
-            widget: list
-            summary: "{{fields.title}} ({{fields.set}})"
-            hint: "Add a photo: upload the image (JPG straight from Lightroom is perfect), give it a title, pick a collection. Existing photos are listed by title — edit titles freely; leave their Id alone."
-            fields:
-              - { label: "Title", name: title, widget: string }
-              - { label: "Collection", name: set, widget: string, hint: "Must match a Collection id below (e.g. s24, s25, s26)" }
-              - { label: "Upload image (new photos only)", name: image, widget: image, required: false }
-              - { label: "Id (auto — don't edit)", name: id, widget: string, required: false }
-          - label: "Collections (the gallery filters)"
-            name: collections
-            widget: list
-            summary: "{{fields.name}}"
-            fields:
-              - { label: "Id (short, no spaces)", name: id, widget: string }
-              - { label: "Name (filter button)", name: name, widget: string }
-              - { label: "Where (optional)", name: where, widget: string, required: false, default: "" }
-              - { label: "Year", name: year, widget: string }
-              - { label: "Blurb (About page)", name: blurb, widget: text }
-          - label: "Hero slideshow (photo ids, in order)"
-            name: heroSlides
-            widget: list
-            field: { label: "Photo id", name: slide, widget: string }
-            hint: "The rotating photos at the top of the homepage. Use ids from the gallery (shown in each photo's Id field)."
-          - label: "Homepage featured strip (photo ids)"
-            name: featured
-            widget: list
-            field: { label: "Photo id", name: item, widget: string }
-          - label: "Homepage section images"
-            name: homeImages
-            widget: object
-            collapsed: true
-            fields:
-              - { label: "My History photo id", name: history, widget: string }
-              - { label: "Prints section photo id", name: shop, widget: string }
-              - { label: "Contact section photo id", name: contact, widget: string }
-              - { label: "About page photo id", name: aboutMedia, widget: string }
-          # ---------- shop ----------
-          - label: "Print Shop products"
-            name: products
-            widget: list
-            summary: "{{fields.title}}"
-            fields:
-              - { label: "Title", name: title, widget: string }
-              - { label: "URL slug (no spaces)", name: slug, widget: string }
-              - { label: "Photo id", name: img, widget: string }
-              - { label: "Story (shown on the product page)", name: story, widget: text }
-              - { label: "Fine Art America artwork URL", name: faaUrl, widget: string, required: false, default: "", hint: "Paste the artwork's page from your FAA account — buy buttons appear automatically" }
-          - label: "Print media types shown"
-            name: printMedia
-            widget: list
-            field: { label: "Type", name: m, widget: string }
-          # ---------- copy ----------
           - { label: "Hero headline", name: heroLine, widget: string }
           - { label: "Hero subline", name: heroSub, widget: string }
           - label: "Page copy"
@@ -93,7 +70,24 @@ collections:
               - { label: "Homepage about teaser", name: aboutTeaser, widget: text }
               - { label: "About page intro", name: aboutLong, widget: text }
               - { label: "Shop intro", name: shopIntro, widget: text }
-          # ---------- contact & links ----------
+          - label: "Homepage section images (photo names from the Photos list)"
+            name: homeImages
+            widget: object
+            fields:
+              - { label: "My History section", name: history, widget: string }
+              - { label: "Prints section", name: shop, widget: string }
+              - { label: "Contact section", name: contact, widget: string }
+              - { label: "About page", name: aboutMedia, widget: string }
+          - label: "Gallery collections (the filter buttons)"
+            name: collections
+            widget: list
+            summary: "{{fields.name}}"
+            fields:
+              - { label: "Id (short, no spaces — used on photos)", name: id, widget: string }
+              - { label: "Name", name: name, widget: string }
+              - { label: "Where (optional)", name: where, widget: string, required: false, default: "" }
+              - { label: "Year", name: year, widget: string }
+              - { label: "Blurb (About page)", name: blurb, widget: text }
           - { label: "Contact email", name: email, widget: string, required: false, default: "" }
           - label: "Social links"
             name: socials
@@ -107,7 +101,11 @@ collections:
             fields:
               - { label: "Your FAA artist page URL", name: artistUrl, widget: string, required: false, default: "" }
               - { label: "Note", name: note, widget: string, required: false }
-          # ---------- fixed site config (leave alone) ----------
+          - label: "Print media types shown in the shop"
+            name: printMedia
+            widget: list
+            field: { label: "Type", name: m, widget: string }
+          # fixed config — visible but rarely touched
           - { label: "Site name", name: name, widget: string }
           - { label: "Domain", name: domain, widget: string }
           - { label: "Tagline", name: tagline, widget: string }

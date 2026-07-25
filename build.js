@@ -4,6 +4,24 @@ const fs = require('fs');
 const path = require('path');
 
 const SITE = require('./data/site.json');
+
+/* photos: one JSON file per photo in content/photos/ (id = filename) */
+const PHOTOS_DIR = path.join(__dirname, 'content', 'photos');
+const PHOTOS = fs.readdirSync(PHOTOS_DIR).filter(f => f.endsWith('.json')).map(f => ({
+  id: f.replace(/\.json$/, ''),
+  ...JSON.parse(fs.readFileSync(path.join(PHOTOS_DIR, f)))
+})).sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || a.id.localeCompare(b.id));
+
+SITE.gallery = PHOTOS.map(p => ({ id: p.id, title: p.title, set: p.set }));
+SITE.heroSlides = PHOTOS.filter(p => p.heroOrder).sort((a, b) => a.heroOrder - b.heroOrder).map(p => p.id);
+SITE.featured = PHOTOS.filter(p => p.featuredOrder).sort((a, b) => a.featuredOrder - b.featuredOrder).map(p => p.id);
+SITE.products = PHOTOS.filter(p => p.forSale).sort((a, b) => (a.saleOrder ?? 999) - (b.saleOrder ?? 999)).map(p => ({
+  slug: p.slug || p.id,
+  img: p.id,
+  title: p.title,
+  story: p.story || `${p.title} — an original underwater photograph by Devyn, available as a museum-quality print.`,
+  faaUrl: p.faaUrl || ''
+}));
 const OUT = path.join(__dirname, 'site');
 const DOMAIN = SITE.domain;
 const YEAR = 2026;
