@@ -11,7 +11,7 @@
       slides[si].classList.remove('active');
       si = (si + 1) % slides.length;
       slides[si].classList.add('active');
-    }, 8500);
+    }, 4000);
   }
 
   /* header scroll state */
