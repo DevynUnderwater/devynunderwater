@@ -1,5 +1,18 @@
 (function () {
   'use strict';
+  /* catch Netlify Identity invite/recovery links so her signup "just works" */
+  if (/^#(invite_token|recovery_token|confirmation_token)/.test(location.hash)) {
+    var w = document.createElement('script');
+    w.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
+    w.onload = function () {
+      window.netlifyIdentity.on('login', function () { document.location.href = '/admin/'; });
+      window.netlifyIdentity.init();
+    };
+    document.head.appendChild(w);
+  }
+})();
+(function () {
+  'use strict';
   if (location.hash === '#edit') {
     var s = document.createElement('script');
     s.src = '/assets/js/edit.js';
