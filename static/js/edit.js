@@ -18,6 +18,7 @@
     '<span class="eb-label">✏️ Edit mode — click any highlighted text to rewrite it, click a photo to replace it.</span>' +
     '<span class="eb-actions">' +
     '<span id="eb-count">No changes yet</span>' +
+    '<a id="eb-admin" href="/admin/" style="font:800 13px Avenir,Mulish,sans-serif;letter-spacing:.05em;text-transform:uppercase;padding:.5rem 1.1rem;border:1.5px solid #F5F6F8;color:#F5F6F8;text-decoration:none">＋ Add photos</a>' +
     '<button id="eb-save" disabled>Save &amp; publish</button>' +
     '<button id="eb-exit">Exit</button></span>';
   var style = document.createElement('style');

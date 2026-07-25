@@ -1,5 +1,24 @@
 (function () {
   'use strict';
+  /* floating Edit button for logged-in editors (production only) */
+  if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) || location.hash === '#edit') return;
+  try {
+    if (localStorage.getItem('gotrue.user')) {
+      var b = document.createElement('a');
+      b.id = 'edit-fab';
+      b.href = '#edit';
+      b.textContent = '\u270F\uFE0F Edit site';
+      b.addEventListener('click', function (e) {
+        e.preventDefault();
+        location.hash = '#edit';
+        location.reload();
+      });
+      window.addEventListener('load', function () { document.body.appendChild(b); });
+    }
+  } catch (e) {}
+})();
+(function () {
+  'use strict';
   /* catch Netlify Identity invite/recovery links so her signup "just works" */
   if (/^#(invite_token|recovery_token|confirmation_token)/.test(location.hash)) {
     var w = document.createElement('script');

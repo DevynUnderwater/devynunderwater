@@ -254,3 +254,13 @@ input:focus, textarea:focus { outline: none; border-color: var(--teal); }
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .tile img, .strip img, .product-card img { transition: none !important; }
 }
+
+/* floating edit button — only injected for logged-in editors */
+#edit-fab {
+  position: fixed; right: 18px; bottom: 18px; z-index: 900;
+  background: var(--ink); color: var(--cream); text-decoration: none;
+  font-weight: var(--heavy); font-size: .9rem; letter-spacing: .05em;
+  padding: .8rem 1.3rem; box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  border: 1.5px solid rgba(245,246,248,.4);
+}
+#edit-fab:hover { background: var(--teal); color: #fff; border-color: var(--teal); }
