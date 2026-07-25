@@ -4,11 +4,12 @@
 # backend (commented below) + enable Identity, then invite Devyn by email.
 # Until then the github backend needs an OAuth app (see README).
 backend:
-  name: github
-  repo: Kevin-Mentatix/devynunderwater
+  name: git-gateway
   branch: main
+# (alternative github-OAuth backend:)
 # backend:
-#   name: git-gateway
+#   name: github
+#   repo: Kevin-Mentatix/devynunderwater
 #   branch: main
 
 # For local testing without auth: npx decap-server  (then open /admin/)
