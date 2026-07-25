@@ -171,7 +171,7 @@ function filmStrip(ids, cls) {
 function homePage() {
   const body = `
 <section class="hero">
-  <div class="hero-media"><img src="/assets/img/hero.jpg" alt="Blue Caribbean reef scene with gorgonians" fetchpriority="high"></div>
+  <div class="hero-media"><img src="/assets/img/hero.jpg" alt="Moray eel with jaws open against dark water" fetchpriority="high"></div>
   <div class="container">
     <h1 class="reveal in">${esc(SITE.heroLine)}</h1>
     <p class="lede reveal in reveal-d1">${esc(SITE.heroSub)}</p>
@@ -191,21 +191,21 @@ function homePage() {
       <p>${esc(SITE.copy.aboutTeaser)}</p>
       <a class="btn btn-light" href="/about/">More about me</a>
     </div>
-    <div class="media reveal reveal-d1"><img src="/assets/img/gallery/bhb-01.jpg" alt="Frogfish photographed at Blue Heron Bridge" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal reveal-d1"><img src="/assets/img/gallery/${SITE.homeImages.history}.jpg" alt="${esc(galleryById[SITE.homeImages.history].title)} — underwater macro photo" loading="lazy" width="800" height="600"></div>
   </div>
 </section>
 
 <section class="section">
   <div class="container">
     <div class="reveal"><div class="kicker">Featured work</div><h2>From the last three logbooks</h2></div>
-    ${filmStrip(['roa-01', 'bhb-01', 'coz-06', 'roa-09', 'bhb-03', 'coz-04', 'bhb-08', 'roa-03'], 'reveal reveal-d1')}
+    ${filmStrip(SITE.featured, 'reveal reveal-d1')}
     <div class="reveal reveal-d2" style="margin-top:1rem"><a class="btn btn-dark" href="/photography/">Browse the full gallery</a></div>
   </div>
 </section>
 
 <section class="section section-ink">
   <div class="container split">
-    <div class="media reveal"><img src="/assets/img/gallery/roa-01.jpg" alt="Banded coral shrimp print" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal"><img src="/assets/img/gallery/${SITE.homeImages.shop}.jpg" alt="${esc(galleryById[SITE.homeImages.shop].title)} — available as a print" loading="lazy" width="800" height="600"></div>
     <div class="reveal reveal-d1">
       <div class="kicker">Prints</div>
       <h2>Take the ocean home</h2>
@@ -223,7 +223,7 @@ function homePage() {
       <p>Questions about a print, a photo, or a dive site? I'd love to hear from you.</p>
       <a class="btn btn-dark" href="/contact/">Get in touch</a>
     </div>
-    <div class="media reveal reveal-d1"><img src="/assets/img/about-divers.jpg" alt="Devyn and dive buddy underwater in Roatán" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal reveal-d1"><img src="/assets/img/gallery/${SITE.homeImages.contact}.jpg" alt="${esc(galleryById[SITE.homeImages.contact].title)}" loading="lazy" width="800" height="600"></div>
   </div>
 </section>`;
   write('index.html', layout({
@@ -248,7 +248,7 @@ function aboutPage() {
       <p>Macro photography rewards patience more than luck: hovering still enough, long enough, for a shrimp to go back to work or a frogfish to forget you exist. That's the part I love — the ocean carries on like you're not there, and every so often it lets you keep a frame of it.</p>
       <p>Everything on this site was shot by me, on dives I logged. If you want to know the story behind a photo — or the dive site — <a href="/contact/">ask</a>.</p>
     </div>
-    <div class="media reveal reveal-d1"><img src="/assets/img/about-divers.jpg" alt="Devyn and dive buddy on a night dive" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal reveal-d1"><img src="/assets/img/gallery/${SITE.homeImages.aboutMedia}.jpg" alt="${esc(galleryById[SITE.homeImages.aboutMedia].title)} — underwater macro photo" loading="lazy" width="800" height="600"></div>
   </div>
 </section>
 <section class="section section-teal">
@@ -258,7 +258,7 @@ function aboutPage() {
       ${SITE.collections.map((c, i) => `<div class="reveal reveal-d${i + 1}">
         <img src="/assets/img/thumbs/${SITE.gallery.find(g => g.set === c.id).id}.jpg" alt="${esc(c.name)} underwater photo" loading="lazy" width="480" height="360" style="box-shadow:var(--shadow);margin-bottom:.9rem">
         <h3>${esc(c.name)}</h3>
-        <p style="font-size:.9rem;opacity:.85">${esc(c.where)} · ${c.year}</p>
+        <p style="font-size:.9rem;opacity:.85">${esc(c.where ? c.where + ' · ' : '')}${c.year}</p>
         <p>${esc(c.blurb)}</p>
       </div>`).join('')}
     </div>
@@ -279,7 +279,7 @@ function photographyPage() {
 <div class="page-hero dark"><div class="container">
   <div class="kicker">The gallery</div>
   <h1>Photography</h1>
-  <p class="lede">Macro life from ${SITE.collections.map(c => c.name).join(', ')} — click any photo to view it full screen. New work is added after every trip.</p>
+  <p class="lede">Three seasons of macro diving — frogfish, nudibranchs, pygmy seahorses, and the rest of the small universe. Click any photo to view it full screen; new work lands after every trip.</p>
 </div></div>
 <section class="section">
   <div class="container">
@@ -296,7 +296,7 @@ function photographyPage() {
   write('photography/index.html', layout({
     slug: '/photography/',
     title: 'Underwater Photo Gallery | Devyn Underwater',
-    description: 'Underwater macro photography gallery: frogfish, shrimp, morays, and reef life from Blue Heron Bridge (Florida), Cozumel, and Roatán.',
+    description: 'Underwater macro photography gallery: frogfish, nudibranchs, pygmy seahorses, morays, and the small life of the reef — three seasons of diving.',
     schema: [breadcrumb(crumbs), {
       '@type': 'ImageGallery',
       name: 'Devyn Underwater — photo gallery',
@@ -421,7 +421,7 @@ function contactPage() {
       </div>
       <button class="btn btn-solid" type="submit" style="margin-top:1rem">Send</button>
     </form>
-    <div class="media reveal reveal-d1"><img src="/assets/img/gallery/roa-07.jpg" alt="Banded coral shrimp at a cleaning station" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal reveal-d1"><img src="/assets/img/gallery/${SITE.homeImages.contact}.jpg" alt="${esc(galleryById[SITE.homeImages.contact].title)}" loading="lazy" width="800" height="600"></div>
   </div>
 </section>`;
   write('contact/index.html', layout({
