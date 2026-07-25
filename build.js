@@ -210,7 +210,7 @@ function homePage() {
   </div>
 </section>
 
-<section class="section section-teal">
+<section class="section section-ink">
   <div class="container split">
     <div class="media reveal"><img src="/assets/img/gallery/${SITE.homeImages.shop}.jpg" alt="${esc(galleryById[SITE.homeImages.shop].title)} — available as a print" loading="lazy" width="800" height="600"></div>
     <div class="reveal reveal-d1">
@@ -283,7 +283,7 @@ function aboutPage() {
 function photographyPage() {
   const crumbs = [['Home', '/'], ['Photography', '/photography/']];
   const body = `
-<div class="page-hero light"><div class="container">
+<div class="page-hero dark"><div class="container">
   <div class="kicker">The gallery</div>
   <h1>Photography</h1>
   <p class="lede">Three seasons of macro diving — frogfish, nudibranchs, pygmy seahorses, and the rest of the small universe. Click any photo to view it full screen; new work lands after every trip.</p>
