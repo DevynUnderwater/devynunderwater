@@ -42,6 +42,9 @@ export const handler = async (event, context) => {
   const { texts = {}, images = {} } = payload;
   const idOk = s => /^[a-z0-9-]+$/.test(s);
 
+  if (!Object.keys(texts).length && !Object.keys(images).length) {
+    return json(200, { ok: true, note: 'nothing to save' });
+  }
   try {
     const ref = await gh(token, `/repos/${repo}/git/ref/heads/main`);
     const baseSha = ref.object.sha;
