@@ -3,6 +3,17 @@
   'use strict';
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* hero slideshow — slow rotation, skipped for reduced motion */
+  var slides = [].slice.call(document.querySelectorAll('.hero-media .slide'));
+  if (slides.length > 1 && !reduced) {
+    var si = 0;
+    setInterval(function () {
+      slides[si].classList.remove('active');
+      si = (si + 1) % slides.length;
+      slides[si].classList.add('active');
+    }, 8500);
+  }
+
   /* header scroll state */
   var header = document.querySelector('.site-header');
   var onScroll = function () { header.classList.toggle('scrolled', window.scrollY > 40); };

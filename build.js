@@ -171,7 +171,9 @@ function filmStrip(ids, cls) {
 function homePage() {
   const body = `
 <section class="hero">
-  <div class="hero-media"><img src="/assets/img/hero.jpg" alt="Moray eel with jaws open against dark water" fetchpriority="high"></div>
+  <div class="hero-media">
+    ${SITE.heroSlides.map((id, i) => `<div class="slide${i === 0 ? ' active' : ''}"><img src="/assets/img/hero/${id}.jpg" alt="${esc(galleryById[id].title)} — underwater macro photograph" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}></div>`).join('')}
+  </div>
   <div class="container">
     <h1 class="reveal in">${esc(SITE.heroLine)}</h1>
     <p class="lede reveal in reveal-d1">${esc(SITE.heroSub)}</p>
