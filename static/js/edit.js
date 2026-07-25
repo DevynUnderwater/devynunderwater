@@ -77,10 +77,33 @@
   /* ---------- photo replacement ---------- */
   var picker = document.createElement('input');
   picker.type = 'file';
-  picker.accept = 'image/jpeg,image/png';
+  picker.accept = 'image/*';
   picker.style.display = 'none';
   document.body.appendChild(picker);
   var pendingImg = null;
+
+  /* Any size file is fine: photos are downscaled in the browser before upload.
+   * The site never renders wider than 1920px (hero), and the save endpoint
+   * (a Netlify function) rejects request bodies over ~6 MB. */
+  var MAX_EDGE = 2560;
+  function shrink(file, cb) {
+    var url = URL.createObjectURL(file);
+    var im = new Image();
+    im.onload = function () {
+      URL.revokeObjectURL(url);
+      var s = Math.min(1, MAX_EDGE / Math.max(im.naturalWidth, im.naturalHeight));
+      var c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * s);
+      c.height = Math.round(im.naturalHeight * s);
+      var x = c.getContext('2d');
+      x.fillStyle = '#fff';
+      x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(im, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', 0.85));
+    };
+    im.onerror = function () { URL.revokeObjectURL(url); cb(null); };
+    im.src = url;
+  }
 
   [].slice.call(document.querySelectorAll('[data-edit-img]')).forEach(function (img) {
     var wrap = document.createElement('span');
@@ -101,19 +124,26 @@
   picker.addEventListener('change', function () {
     var f = picker.files[0];
     if (!f || !pendingImg) return;
-    if (f.size > 20 * 1024 * 1024) { say('That file is over 20 MB — export a smaller JPG.'); return; }
-    var r = new FileReader();
-    r.onload = function () {
-      var id = pendingImg.getAttribute('data-edit-img');
-      images[id] = r.result;
+    var target = pendingImg;
+    say('Preparing photo…', true);
+    shrink(f, function (dataUrl) {
+      if (!dataUrl) { say('Could not read that file — try a JPG or PNG.'); return; }
+      var id = target.getAttribute('data-edit-img');
+      var pending = 0;
+      for (var k in images) if (k !== id) pending += images[k].length;
+      if (pending && pending + dataUrl.length > 4.5 * 1024 * 1024) {
+        say('That’s a lot of photos in one go — hit Save & publish first, then replace this one.');
+        return;
+      }
+      images[id] = dataUrl;
       /* live preview everywhere this photo appears */
       [].slice.call(document.querySelectorAll('[data-edit-img="' + id + '"]')).forEach(function (im) {
-        im.src = r.result;
+        im.src = dataUrl;
         im.classList.add('eb-img-dirty');
       });
       dirtyCount();
-    };
-    r.readAsDataURL(f);
+      say('Photo ready — hit Save & publish when you’re done.');
+    });
     picker.value = '';
   });
 
