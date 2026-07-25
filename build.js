@@ -43,7 +43,11 @@ function copyDir(src, dst) {
 const crypto = require('crypto');
 const hashOf = f => crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, f))).digest('hex').slice(0, 8);
 const CSS_V = hashOf('static/css/styles.css');
-const JS_V = hashOf('static/js/main.js');
+const EDIT_V = hashOf('static/js/edit.js');
+/* main.js lazy-loads edit.js, and /assets/* is cached immutable — so the
+ * edit.js URL must be versioned, and its version must ripple into main.js's
+ * version (pages → main.js?v → edit.js?v) or browsers keep the old editor. */
+const JS_V = crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, 'static/js/main.js'))).update(EDIT_V).digest('hex').slice(0, 8);
 
 
 /* editable text layer: every visible string lives in data/text.json.
@@ -582,6 +586,8 @@ console.log('Building Devyn Underwater…');
 fs.rmSync(OUT, { recursive: true, force: true });
 copyDir(path.join(__dirname, 'static', 'css'), path.join(OUT, 'assets', 'css'));
 copyDir(path.join(__dirname, 'static', 'js'), path.join(OUT, 'assets', 'js'));
+const mainOut = path.join(OUT, 'assets', 'js', 'main.js');
+fs.writeFileSync(mainOut, fs.readFileSync(mainOut, 'utf8').replace("'/assets/js/edit.js'", "'/assets/js/edit.js?v=" + EDIT_V + "'"));
 copyDir(path.join(__dirname, 'static', 'img'), path.join(OUT, 'assets', 'img'));
 copyDir(path.join(__dirname, 'static', 'admin'), path.join(OUT, 'admin'));
 if (fs.existsSync(path.join(__dirname, 'uploads'))) {
