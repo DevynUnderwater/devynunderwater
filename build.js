@@ -466,6 +466,37 @@ function privacyPage() {
   }));
 }
 
+function managePage() {
+  const tools = [
+    { t: '📝 Edit your website', h: '/admin/', d: 'Add photos, fix titles, edit copy, manage the print shop. Hit Publish when done — the site rebuilds itself in about two minutes.' },
+    { t: '🖼 Your Fine Art America account', h: 'https://fineartamerica.com/login.html', d: 'Upload images for sale, set your prices and markups. Paste each artwork\'s FAA link into the matching product in the editor and buy buttons go live.' },
+    { t: '👀 View the live site', h: '/', d: 'See what visitors see. Changes appear a couple of minutes after you publish.' }
+  ];
+  const body = `
+<div class="page-hero"><div class="container">
+  <div class="kicker">For Devyn</div>
+  <h1>Manage your website</h1>
+  <p class="lede">Bookmark this page — everything you need lives behind these three doors. You can\'t break anything: every change is saved with history and reversible.</p>
+</div></div>
+<section class="section">
+  <div class="container">
+    <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.4rem">
+      ${tools.map(x => `<a class="product-card" href="${x.h}"${x.h.startsWith('http') ? ' target="_blank" rel="noopener"' : ''} style="border:1px solid var(--sand);padding:1.6rem;background:#fff;box-shadow:var(--shadow)">
+        <h3 style="margin-top:0">${x.t}</h3><p style="opacity:.8">${x.d}</p>
+      </a>`).join('')}
+    </div>
+    <p class="notice" style="margin-top:2rem">Adding photos: upload the JPG exactly as you export it from Lightroom — the site resizes everything automatically. Give it a title, pick a collection, publish. Done.</p>
+  </div>
+</section>`;
+  write('manage/index.html', layout({
+    slug: '/manage/',
+    title: 'Manage | Devyn Underwater',
+    description: 'Content management for Devyn Underwater.',
+    extraHead: '<meta name="robots" content="noindex, nofollow">',
+    body
+  }));
+}
+
 function notFound() {
   const body = `
 <section class="section" style="min-height:70vh;display:flex;align-items:center;padding-top:calc(var(--header-h) + 2rem)">
@@ -491,6 +522,8 @@ ${slugs.map(s => `  <url><loc>${DOMAIN}${s}</loc><lastmod>2026-07-24</lastmod></
 `);
   write('robots.txt', `User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /manage/
 
 Sitemap: ${DOMAIN}/sitemap.xml
 `);
@@ -521,6 +554,10 @@ fs.rmSync(OUT, { recursive: true, force: true });
 copyDir(path.join(__dirname, 'static', 'css'), path.join(OUT, 'assets', 'css'));
 copyDir(path.join(__dirname, 'static', 'js'), path.join(OUT, 'assets', 'js'));
 copyDir(path.join(__dirname, 'static', 'img'), path.join(OUT, 'assets', 'img'));
+copyDir(path.join(__dirname, 'static', 'admin'), path.join(OUT, 'admin'));
+if (fs.existsSync(path.join(__dirname, 'uploads'))) {
+  copyDir(path.join(__dirname, 'uploads'), path.join(OUT, 'uploads'));
+}
 
 /* favicon: teal wave dot */
 fs.writeFileSync(path.join(OUT, 'assets', 'img', 'favicon.svg'),
@@ -533,6 +570,7 @@ shopPage();
 SITE.products.forEach(productPage);
 contactPage();
 privacyPage();
+managePage();
 notFound();
 const slugs = ['/', '/about/', '/photography/', '/shop/', ...SITE.products.map(p => `/shop/${p.slug}/`), '/contact/', '/privacy-policy/'];
 seoFiles(slugs);
