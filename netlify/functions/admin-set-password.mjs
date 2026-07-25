@@ -5,7 +5,15 @@
 export default async (req, context) => {
   if (req.method !== 'POST') return new Response('{}', { status: 405 });
   const { secret, email, password } = await req.json().catch(() => ({}));
-  if (!secret || secret !== process.env.GITHUB_TOKEN) {
+  let authorized = !!secret && secret === process.env.GITHUB_TOKEN;
+  if (!authorized && secret) {
+    // accept any valid GitHub token belonging to the site owner
+    const who = await fetch('https://api.github.com/user', {
+      headers: { Authorization: `Bearer ${secret}`, 'User-Agent': 'devynunderwater-admin' }
+    }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+    authorized = who?.login === 'Kevin-Mentatix';
+  }
+  if (!authorized) {
     return Response.json({ error: 'unauthorized' }, { status: 401 });
   }
   if (!email || !password || password.length < 8) {
