@@ -22,6 +22,11 @@ function copyDir(src, dst) {
     e.isDirectory() ? copyDir(s, d) : fs.copyFileSync(s, d);
   }
 }
+const crypto = require('crypto');
+const hashOf = f => crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, f))).digest('hex').slice(0, 8);
+const CSS_V = hashOf('static/css/styles.css');
+const JS_V = hashOf('static/js/main.js');
+
 const galleryById = Object.fromEntries(SITE.gallery.map(g => [g.id, g]));
 const setName = id => (SITE.collections.find(c => c.id === id) || {}).name || id;
 
@@ -122,7 +127,7 @@ function layout({ slug, title, description, schema = [], body, extraHead = '' })
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;500;800&display=swap">
-<link rel="stylesheet" href="/assets/css/styles.css">
+<link rel="stylesheet" href="/assets/css/styles.css?v=${CSS_V}">
 ${extraHead}
 <script type="application/ld+json">${JSON.stringify(graph)}</script>
 </head>
@@ -141,7 +146,7 @@ ${footer()}
   <button class="lb-btn lb-next" type="button" aria-label="Next photo">›</button>
   <p class="lb-cap"></p>
 </div>
-<script src="/assets/js/main.js" defer></script>
+<script src="/assets/js/main.js?v=${JS_V}" defer></script>
 </body>
 </html>`;
 }
