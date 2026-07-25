@@ -1,0 +1,68 @@
+{
+  "name": "Devyn Underwater",
+  "domain": "https://www.devynunderwater.com",
+  "tagline": "Underwater macro photography",
+  "heroLine": "Discover the secrets of the ocean with me.",
+  "heroSub": "I am a macro photographer with a passion for being underwater.",
+  "email": "",
+  "socials": { "instagram": "", "facebook": "" },
+  "colors": {
+    "cream": "#F8F8F4",
+    "teal": "#7499A1",
+    "sand": "#DBD9D3",
+    "ink": "#3E3D35"
+  },
+  "faa": {
+    "artistUrl": "",
+    "note": "TODO: Devyn's Fine Art America artist profile URL — fills every product's buy destination. Per-product faaUrl overrides below."
+  },
+  "collections": [
+    { "id": "bhb", "name": "Blue Heron Bridge", "where": "Riviera Beach, Florida", "year": "2023", "blurb": "One shallow Florida lagoon, endless small wonders — frogfish, batfish, and creatures most divers swim right past." },
+    { "id": "coz", "name": "Cozumel", "where": "Quintana Roo, Mexico", "year": "2023", "blurb": "Drift-diving Cozumel's walls and finding the faces in the reef — morays, filefish, and scorpionfish hiding in plain sight." },
+    { "id": "roa", "name": "Roatán", "where": "Bay Islands, Honduras", "year": "2023", "blurb": "Caribbean reefs stacked with life — cleaner shrimp, trumpetfish, and the spotted drum that never stops dancing." }
+  ],
+  "gallery": [
+    { "id": "bhb-01", "title": "Frogfish, Waiting", "set": "bhb" },
+    { "id": "bhb-02", "title": "Frogfish on the Move", "set": "bhb" },
+    { "id": "bhb-03", "title": "Crinoid in Bloom", "set": "bhb" },
+    { "id": "bhb-04", "title": "Red Whip", "set": "bhb" },
+    { "id": "bhb-05", "title": "Spiny Lobster", "set": "bhb" },
+    { "id": "bhb-06", "title": "Filefish in Green", "set": "bhb" },
+    { "id": "bhb-07", "title": "Bottom Dweller", "set": "bhb" },
+    { "id": "bhb-08", "title": "Orange Cup Coral", "set": "bhb" },
+    { "id": "bhb-09", "title": "Master of Camouflage", "set": "bhb" },
+    { "id": "coz-01", "title": "Reef Colors", "set": "coz" },
+    { "id": "coz-02", "title": "Over the Coral", "set": "coz" },
+    { "id": "coz-03", "title": "Spotted Moray", "set": "coz" },
+    { "id": "coz-04", "title": "Green Moray", "set": "coz" },
+    { "id": "coz-05", "title": "Grunts in a Row", "set": "coz" },
+    { "id": "coz-06", "title": "Filefish Pair", "set": "coz" },
+    { "id": "coz-07", "title": "Scorpionfish Study", "set": "coz" },
+    { "id": "coz-08", "title": "Cozumel Reef", "set": "coz" },
+    { "id": "roa-01", "title": "Banded Coral Shrimp", "set": "roa" },
+    { "id": "roa-02", "title": "Blue Water Reef", "set": "roa" },
+    { "id": "roa-03", "title": "Trumpetfish", "set": "roa" },
+    { "id": "roa-04", "title": "Lionfish", "set": "roa" },
+    { "id": "roa-05", "title": "Brain Coral Textures", "set": "roa" },
+    { "id": "roa-06", "title": "Out of the Burrow", "set": "roa" },
+    { "id": "roa-07", "title": "Cleaning Station", "set": "roa" },
+    { "id": "roa-08", "title": "The Humans", "set": "roa" },
+    { "id": "roa-09", "title": "Spotted Drum", "set": "roa" }
+  ],
+  "products": [
+    { "slug": "frogfish-waiting", "img": "bhb-01", "title": "Frogfish, Waiting", "story": "A frogfish doing what frogfish do best — being a sponge until something swims too close. Shot at Blue Heron Bridge, Florida.", "faaUrl": "" },
+    { "slug": "banded-coral-shrimp", "img": "roa-01", "title": "Banded Coral Shrimp", "story": "Candy-striped and fearless — this cleaner shrimp ran its station on a Roatán reef, gloved claws out.", "faaUrl": "" },
+    { "slug": "spotted-drum", "img": "roa-09", "title": "Spotted Drum", "story": "The reef's restless dancer. Juvenile spotted drums never stop moving, which makes a sharp frame a small victory.", "faaUrl": "" },
+    { "slug": "spiny-lobster", "img": "bhb-05", "title": "Spiny Lobster", "story": "Antennae first, questions later. A Florida spiny lobster meets the dome port head-on.", "faaUrl": "" },
+    { "slug": "orange-cup-coral", "img": "bhb-08", "title": "Orange Cup Coral", "story": "Cup corals open like fireworks after dark — a night-dive bloom in full orange.", "faaUrl": "" },
+    { "slug": "crinoid-in-bloom", "img": "bhb-03", "title": "Crinoid in Bloom", "story": "A feather star unfurled against the dark — the ocean's oldest flower that isn't a flower at all.", "faaUrl": "" },
+    { "slug": "filefish-pair", "img": "coz-06", "title": "Filefish Pair", "story": "Two whitespotted filefish keeping formation over a Cozumel reef — an easy shot to see, a hard one to time.", "faaUrl": "" },
+    { "slug": "trumpetfish", "img": "roa-03", "title": "Trumpetfish", "story": "Vertical, patient, and pretending very hard to be a stick of gorgonian. It fooled the reef, not the camera.", "faaUrl": "" }
+  ],
+  "printMedia": ["Fine art paper", "Canvas", "Metal", "Acrylic", "Framed print", "Greeting cards"],
+  "copy": {
+    "aboutTeaser": "I'm Devyn — a macro photographer who spends as much time as possible below the surface. My favorite subjects are the small ones: shrimp the size of a fingernail, frogfish pretending to be sponges, and everything else most divers swim past.",
+    "aboutLong": "What started as a way to remember dives became the reason for them. I shoot macro — the tiny, strange, spectacular life that hides on every reef and under every pier piling. My home water is Blue Heron Bridge in Florida, one of the best small-critter dive sites anywhere, and my logbook keeps pulling me back to the Caribbean: Cozumel's walls, Roatán's reefs, and wherever the next small thing is hiding.",
+    "shopIntro": "Every print is made to order through my print partner, Fine Art America — museum-grade papers, canvas, metal, acrylic, and framing, with worldwide shipping and a 30-day guarantee. You pick the piece here; their secure checkout handles the rest."
+  }
+}
