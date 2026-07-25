@@ -20,13 +20,18 @@ function setPath(obj, dotted, value) {
 
 function applyTexts(texts) {
   const siteFile = path.join(ROOT, 'data', 'site.json');
+  const textFile = path.join(ROOT, 'data', 'text.json');
   const site = JSON.parse(fs.readFileSync(siteFile));
-  let siteDirty = false;
+  const textMap = fs.existsSync(textFile) ? JSON.parse(fs.readFileSync(textFile)) : {};
+  let siteDirty = false, textDirty = false;
   for (const [key, value] of Object.entries(texts)) {
     const [kind, ...rest] = key.split(':');
     if (kind === 'site') {
       setPath(site, rest[0], value.trim());
       siteDirty = true;
+    } else if (kind === 'text') {
+      textMap[rest.join(':')] = value.trim();
+      textDirty = true;
     } else if (kind === 'photo') {
       const [id, field] = rest;
       if (!/^[a-z0-9-]+$/.test(id)) continue;
@@ -38,6 +43,7 @@ function applyTexts(texts) {
     }
   }
   if (siteDirty) fs.writeFileSync(siteFile, JSON.stringify(site, null, 2));
+  if (textDirty) fs.writeFileSync(textFile, JSON.stringify(textMap, null, 2));
 }
 
 function applyImages(images) {

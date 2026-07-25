@@ -55,6 +55,7 @@ export const handler = async (event, context) => {
       treeEntries.push({ path: p, mode: '100644', type: 'blob', content: JSON.stringify(obj, null, 2) });
 
     let site = null;
+    let textMap = null;
     const photoCache = {};
     for (const [key, valueRaw] of Object.entries(texts)) {
       const value = String(valueRaw).slice(0, 5000).trim();
@@ -62,6 +63,9 @@ export const handler = async (event, context) => {
       if (kind === 'site') {
         site = site || (await readFile('data/site.json'));
         setPath(site, rest[0], value);
+      } else if (kind === 'text') {
+        textMap = textMap || (await readFile('data/text.json').catch(() => ({})));
+        textMap[rest.join(':')] = value;
       } else if (kind === 'photo') {
         const [id, field] = rest;
         if (!idOk(id) || !['title', 'story'].includes(field)) continue;
@@ -70,6 +74,7 @@ export const handler = async (event, context) => {
       }
     }
     if (site) putJson('data/site.json', site);
+    if (textMap) putJson('data/text.json', textMap);
 
     for (const [id, dataUrl] of Object.entries(images)) {
       if (!idOk(id)) continue;

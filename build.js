@@ -45,6 +45,17 @@ const hashOf = f => crypto.createHash('md5').update(fs.readFileSync(path.join(__
 const CSS_V = hashOf('static/css/styles.css');
 const JS_V = hashOf('static/js/main.js');
 
+
+/* editable text layer: every visible string lives in data/text.json.
+ * t() renders a bound editable span; new keys are auto-added on build. */
+const TEXT_FILE = path.join(__dirname, 'data', 'text.json');
+const TEXT = fs.existsSync(TEXT_FILE) ? JSON.parse(fs.readFileSync(TEXT_FILE)) : {};
+let TEXT_DIRTY = false;
+const t = (key, def) => {
+  if (!(key in TEXT)) { TEXT[key] = def; TEXT_DIRTY = true; }
+  return `<span data-edit="text:${key}">${esc(TEXT[key])}</span>`;
+};
+
 const galleryById = Object.fromEntries(SITE.gallery.map(g => [g.id, g]));
 const setName = id => (SITE.collections.find(c => c.id === id) || {}).name || id;
 
@@ -91,8 +102,8 @@ function header(active) {
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><span class="ham"></span></button>
     <nav id="site-nav" class="site-nav" aria-label="Main">
       <ul>
-        ${NAV.slice(0, 4).map(([l, h]) => `<li><a href="${h}"${h === active ? ' aria-current="page"' : ''}>${l}</a></li>`).join('')}
-        <li><a class="nav-cta" href="/contact/"${active === '/contact/' ? ' aria-current="page"' : ''}>Contact</a></li>
+        ${NAV.slice(0, 4).map(([l, h], i) => `<li><a href="${h}"${h === active ? ' aria-current="page"' : ''}>${t('nav.' + i, l)}</a></li>`).join('')}
+        <li><a class="nav-cta" href="/contact/"${active === '/contact/' ? ' aria-current="page"' : ''}>${t('nav.cta', 'Contact')}</a></li>
       </ul>
     </nav>
   </div>
@@ -104,11 +115,11 @@ function footer() {
   <div class="container">
     <div class="footer-grid">
       <div>
-        <h4>Explore</h4>
-        <ul>${NAV.map(([l, h]) => `<li><a href="${h}">${l}</a></li>`).join('')}</ul>
+        <h4>${t('footer.explore', 'Explore')}</h4>
+        <ul>${NAV.map(([l, h], i) => `<li><a href="${h}">${t('nav.' + i, l)}</a></li>`).join('')}</ul>
       </div>
       <div>
-        <h4>Elsewhere</h4>
+        <h4>${t('footer.elsewhere', 'Elsewhere')}</h4>
         <ul>
           ${socials.length ? socials.map(([k, v]) => `<li><a href="${v}" target="_blank" rel="noopener">${k[0].toUpperCase() + k.slice(1)}</a></li>`).join('') : '<li><span style="opacity:.6">Social links coming soon</span></li>'}
           ${SITE.faa.artistUrl ? `<li><a href="${SITE.faa.artistUrl}" target="_blank" rel="noopener">Fine Art America</a></li>` : ''}
@@ -117,8 +128,8 @@ function footer() {
       <div class="footer-logo"><img src="/assets/img/logo-white.png" alt="" loading="lazy" width="300" height="188"></div>
     </div>
     <div class="footer-legal">
-      <span>© ${YEAR} Devyn Underwater · All images are the photographer's original work</span>
-      <a href="/privacy-policy/">Privacy Policy</a>
+      <span>${t('footer.legal', `© ${YEAR} Devyn Underwater · All images are the photographer's original work`)}</span>
+      <a href="/privacy-policy/">${t('footer.privacy', 'Privacy Policy')}</a>
     </div>
   </div>
 </footer>`;
@@ -172,7 +183,7 @@ ${footer()}
 /* ---------------- components ---------------- */
 const tile = (g, i) => `<button class="tile reveal${i % 3 === 1 ? ' reveal-d1' : i % 3 === 2 ? ' reveal-d2' : ''}" type="button" data-set="${g.set}" data-full="/assets/img/gallery/${g.id}.jpg" data-title="${esc(g.title)} — ${esc(setName(g.set))}">
   <img data-edit-img="${g.id}" src="/assets/img/thumbs/${g.id}.jpg" alt="${esc(g.title)} — underwater photo from ${esc(setName(g.set))}" loading="lazy" width="480" height="360">
-  <span class="tile-cap">${esc(g.title)}</span>
+  <span class="tile-cap" data-edit="photo:${g.id}:title">${esc(g.title)}</span>
 </button>`;
 
 function filmStrip(ids, cls) {
@@ -180,7 +191,7 @@ function filmStrip(ids, cls) {
     <div class="strip" tabindex="0" aria-label="Photo strip — scroll horizontally">
       ${ids.map(id => {
         const g = galleryById[id];
-        return `<a href="/photography/#${id}"><figure style="margin:0"><img src="/assets/img/gallery/${id}.jpg" alt="${esc(g.title)}" loading="lazy"><figcaption>${esc(g.title)}</figcaption></figure></a>`;
+        return `<a href="/photography/#${id}"><figure style="margin:0"><img data-edit-img="${id}" src="/assets/img/gallery/${id}.jpg" alt="${esc(g.title)}" loading="lazy"><figcaption data-edit="photo:${id}:title">${esc(g.title)}</figcaption></figure></a>`;
       }).join('')}
     </div>
     <div class="strip-nav">
@@ -201,20 +212,20 @@ function homePage() {
     <h1 class="reveal in" data-edit="site:heroLine">${esc(SITE.heroLine)}</h1>
     <p class="lede reveal in reveal-d1" data-edit="site:heroSub">${esc(SITE.heroSub)}</p>
     <div class="btn-row reveal in reveal-d2">
-      <a class="btn btn-light" href="/photography/">View the work</a>
-      <a class="btn btn-light" href="/shop/">Shop prints</a>
+      <a class="btn btn-light" href="/photography/">${t('home.hero.btn1', 'View the work')}</a>
+      <a class="btn btn-light" href="/shop/">${t('home.hero.btn2', 'Shop prints')}</a>
     </div>
   </div>
-  <span class="scroll-cue" aria-hidden="true">Dive in ↓</span>
+  <span class="scroll-cue" aria-hidden="true">${t('home.hero.cue', 'Dive in ↓')}</span>
 </section>
 
 <section class="section section-teal">
   <div class="container split">
     <div class="reveal">
-      <div class="kicker">My history</div>
-      <h2>Small subjects. Big obsession.</h2>
+      <div class="kicker">${t('home.history.kicker', 'My history')}</div>
+      <h2>${t('home.history.h2', 'Small subjects. Big obsession.')}</h2>
       <p data-edit="site:copy.aboutTeaser">${esc(SITE.copy.aboutTeaser)}</p>
-      <a class="btn btn-light" href="/about/">More about me</a>
+      <a class="btn btn-light" href="/about/">${t('home.history.btn', 'More about me')}</a>
     </div>
     <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.history}" src="/assets/img/gallery/${SITE.homeImages.history}.jpg" alt="${esc(galleryById[SITE.homeImages.history].title)} — underwater macro photo" loading="lazy" width="800" height="600"></div>
   </div>
@@ -222,9 +233,9 @@ function homePage() {
 
 <section class="section">
   <div class="container">
-    <div class="reveal"><div class="kicker">Featured work</div><h2>From the last three logbooks</h2></div>
+    <div class="reveal"><div class="kicker">${t('home.feat.kicker', 'Featured work')}</div><h2>${t('home.feat.h2', 'From the last three logbooks')}</h2></div>
     ${filmStrip(SITE.featured, 'reveal reveal-d1')}
-    <div class="reveal reveal-d2" style="margin-top:1rem"><a class="btn btn-dark" href="/photography/">Browse the full gallery</a></div>
+    <div class="reveal reveal-d2" style="margin-top:1rem"><a class="btn btn-dark" href="/photography/">${t('home.feat.btn', 'Browse the full gallery')}</a></div>
   </div>
 </section>
 
@@ -232,10 +243,10 @@ function homePage() {
   <div class="container split">
     <div class="media reveal"><img data-edit-img="${SITE.homeImages.shop}" src="/assets/img/gallery/${SITE.homeImages.shop}.jpg" alt="${esc(galleryById[SITE.homeImages.shop].title)} — available as a print" loading="lazy" width="800" height="600"></div>
     <div class="reveal reveal-d1">
-      <div class="kicker">Prints</div>
-      <h2>Take the ocean home</h2>
-      <p>Select works are available as museum-quality prints — paper, canvas, metal, and acrylic — made to order and shipped worldwide by my print partner, Fine Art America.</p>
-      <a class="btn btn-light" href="/shop/">Shop prints</a>
+      <div class="kicker">${t('home.prints.kicker', 'Prints')}</div>
+      <h2>${t('home.prints.h2', 'Take the ocean home')}</h2>
+      <p>${t('home.prints.p', 'Select works are available as museum-quality prints — paper, canvas, metal, and acrylic — made to order and shipped worldwide by my print partner, Fine Art America.')}</p>
+      <a class="btn btn-light" href="/shop/">${t('home.hero.btn2', 'Shop prints')}</a>
     </div>
   </div>
 </section>
@@ -243,10 +254,10 @@ function homePage() {
 <section class="section section-sand">
   <div class="container split">
     <div class="reveal">
-      <div class="kicker">Say hello</div>
-      <h2>Thank you for diving in</h2>
-      <p>Questions about a print, a photo, or a dive site? I'd love to hear from you.</p>
-      <a class="btn btn-dark" href="/contact/">Get in touch</a>
+      <div class="kicker">${t('home.contact.kicker', 'Say hello')}</div>
+      <h2>${t('home.contact.h2', 'Thank you for diving in')}</h2>
+      <p>${t('home.contact.p', "Questions about a print, a photo, or a dive site? I'd love to hear from you.")}</p>
+      <a class="btn btn-dark" href="/contact/">${t('home.contact.btn', 'Get in touch')}</a>
     </div>
     <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.contact}" src="/assets/img/gallery/${SITE.homeImages.contact}.jpg" alt="${esc(galleryById[SITE.homeImages.contact].title)}" loading="lazy" width="800" height="600"></div>
   </div>
@@ -263,28 +274,28 @@ function aboutPage() {
   const crumbs = [['Home', '/'], ['About', '/about/']];
   const body = `
 <div class="page-hero"><div class="container">
-  <div class="kicker">About</div>
-  <h1>The diver behind the lens</h1>
+  <div class="kicker">${t('about.kicker', 'About')}</div>
+  <h1>${t('about.h1', 'The diver behind the lens')}</h1>
 </div></div>
 <section class="section">
   <div class="container split">
     <div class="prose reveal">
       <p data-edit="site:copy.aboutLong">${esc(SITE.copy.aboutLong)}</p>
-      <p>Macro photography rewards patience more than luck: hovering still enough, long enough, for a shrimp to go back to work or a frogfish to forget you exist. That's the part I love — the ocean carries on like you're not there, and every so often it lets you keep a frame of it.</p>
-      <p>Everything on this site was shot by me, on dives I logged. If you want to know the story behind a photo — or the dive site — <a href="/contact/">ask</a>.</p>
+      <p>${t('about.p2', "Macro photography rewards patience more than luck: hovering still enough, long enough, for a shrimp to go back to work or a frogfish to forget you exist. That's the part I love — the ocean carries on like you're not there, and every so often it lets you keep a frame of it.")}</p>
+      <p>${t('about.p3a', 'Everything on this site was shot by me, on dives I logged. If you want to know the story behind a photo — or the dive site —')} <a href="/contact/">${t('about.p3link', 'ask')}</a>.</p>
     </div>
     <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.aboutMedia}" src="/assets/img/gallery/${SITE.homeImages.aboutMedia}.jpg" alt="${esc(galleryById[SITE.homeImages.aboutMedia].title)} — underwater macro photo" loading="lazy" width="800" height="600"></div>
   </div>
 </section>
 <section class="section section-teal">
   <div class="container">
-    <div class="reveal"><div class="kicker">Dive log</div><h2>Where the work comes from</h2></div>
+    <div class="reveal"><div class="kicker">${t('about.log.kicker', 'Dive log')}</div><h2>${t('about.log.h2', 'Where the work comes from')}</h2></div>
     <div class="split" style="grid-template-columns:repeat(3,1fr);align-items:start" >
       ${SITE.collections.map((c, i) => `<div class="reveal reveal-d${i + 1}">
-        <img src="/assets/img/thumbs/${SITE.gallery.find(g => g.set === c.id).id}.jpg" alt="${esc(c.name)} underwater photo" loading="lazy" width="480" height="360" style="box-shadow:var(--shadow);margin-bottom:.9rem">
-        <h3>${esc(c.name)}</h3>
+        <img data-edit-img="${SITE.gallery.find(g => g.set === c.id).id}" src="/assets/img/thumbs/${SITE.gallery.find(g => g.set === c.id).id}.jpg" alt="${esc(c.name)} underwater photo" loading="lazy" width="480" height="360" style="box-shadow:var(--shadow);margin-bottom:.9rem">
+        <h3><span data-edit="site:collections.${i}.name">${esc(c.name)}</span></h3>
         <p style="font-size:.9rem;opacity:.85">${esc(c.where ? c.where + ' · ' : '')}${c.year}</p>
-        <p>${esc(c.blurb)}</p>
+        <p data-edit="site:collections.${i}.blurb">${esc(c.blurb)}</p>
       </div>`).join('')}
     </div>
   </div>
@@ -302,9 +313,9 @@ function photographyPage() {
   const crumbs = [['Home', '/'], ['Photography', '/photography/']];
   const body = `
 <div class="page-hero dark"><div class="container">
-  <div class="kicker">The gallery</div>
-  <h1>Photography</h1>
-  <p class="lede">Three seasons of macro diving — frogfish, nudibranchs, pygmy seahorses, and the rest of the small universe. Click any photo to view it full screen; new work lands after every trip.</p>
+  <div class="kicker">${t('gal.kicker', 'The gallery')}</div>
+  <h1>${t('gal.h1', 'Photography')}</h1>
+  <p class="lede">${t('gal.lede', 'Three seasons of macro diving — frogfish, nudibranchs, pygmy seahorses, and the rest of the small universe. Click any photo to view it full screen; new work lands after every trip.')}</p>
 </div></div>
 <section class="section">
   <div class="container">
@@ -315,7 +326,7 @@ function photographyPage() {
     <div class="gallery">
       ${SITE.gallery.map((g, i) => tile(g, i)).join('')}
     </div>
-    <p class="notice" style="margin-top:2rem">Like one of these on your wall? Select works are available as <a href="/shop/">prints</a> — and if the one you want isn't in the shop yet, <a href="/contact/">ask me</a>.</p>
+    <p class="notice" style="margin-top:2rem">${t('gal.notice.pre', 'Like one of these on your wall? Select works are available as')} <a href="/shop/">${t('gal.notice.link1', 'prints')}</a> ${t('gal.notice.mid', "— and if the one you want isn't in the shop yet,")} <a href="/contact/">${t('gal.notice.link2', 'ask me')}</a>.</p>
   </div>
 </section>`;
   write('photography/index.html', layout({
@@ -336,24 +347,24 @@ function shopPage() {
   const crumbs = [['Home', '/'], ['Shop Prints', '/shop/']];
   const body = `
 <div class="page-hero"><div class="container">
-  <div class="kicker">The print shop</div>
-  <h1>Shop prints</h1>
+  <div class="kicker">${t('shop.kicker', 'The print shop')}</div>
+  <h1>${t('shop.h1', 'Shop prints')}</h1>
   <p class="lede" data-edit="site:copy.shopIntro">${esc(SITE.copy.shopIntro)}</p>
 </div></div>
 <section class="section">
   <div class="container">
     <div class="product-grid">
       ${SITE.products.map((p, i) => `<a class="product-card reveal${i % 4 ? ` reveal-d${i % 4}` : ''}" href="/shop/${p.slug}/">
-        <div class="ph"><img src="/assets/img/gallery/${p.img}.jpg" alt="${esc(p.title)} — print" loading="lazy" width="480" height="600"></div>
-        <h3>${esc(p.title)}</h3>
-        <p>${esc(setName(galleryById[p.img].set))} · paper, canvas, metal &amp; more</p>
+        <div class="ph"><img data-edit-img="${p.img}" src="/assets/img/gallery/${p.img}.jpg" alt="${esc(p.title)} — print" loading="lazy" width="480" height="600"></div>
+        <h3><span data-edit="photo:${p.img}:title">${esc(p.title)}</span></h3>
+        <p>${esc(setName(galleryById[p.img].set))} · ${t('shop.card.sub', 'paper, canvas, metal & more')}</p>
       </a>`).join('')}
     </div>
     <div class="trust-row" style="margin-top:2rem">
-      <span>✓ Printed &amp; shipped by Fine Art America</span>
-      <span>✓ 30-day money-back guarantee</span>
-      <span>✓ Worldwide shipping</span>
-      <span>✓ Secure checkout</span>
+      <span>✓ ${t('shop.trust1', 'Printed & shipped by Fine Art America')}</span>
+      <span>✓ ${t('shop.trust2', '30-day money-back guarantee')}</span>
+      <span>✓ ${t('shop.trust3', 'Worldwide shipping')}</span>
+      <span>✓ ${t('shop.trust4', 'Secure checkout')}</span>
     </div>
   </div>
 </section>`;
@@ -373,7 +384,7 @@ function productPage(p) {
   const hasFaa = !!p.faaUrl;
   const buyButtons = hasFaa
     ? FAA_MEDIA.map(m => `<a class="btn btn-dark" style="margin:.25rem .4rem .25rem 0" href="${faaLink(p, m.param)}" target="_blank" rel="noopener">${m.label}</a>`).join('')
-    : `<p class="notice">Print options for this piece are being set up — <a href="/contact/">contact me</a> to order it today, or check back soon.</p>`;
+    : `<p class="notice">${t('prod.pending.pre', 'Print options for this piece are being set up —')} <a href="/contact/">${t('prod.pending.link', 'contact me')}</a> ${t('prod.pending.post', 'to order it today, or check back soon.')}</p>`;
   const body = `
 <div class="page-hero dark"><div class="container">
   <div class="kicker">${esc(setName(g.set))} · ${SITE.collections.find(c => c.id === g.set).year}</div>
@@ -385,26 +396,26 @@ function productPage(p) {
     <div class="reveal reveal-d1">
       <p data-edit="photo:${p.img}:story">${esc(p.story)}</p>
       <div class="buy-box">
-        <h3 style="margin-top:0">Available as</h3>
-        <ul class="media-pills">${SITE.printMedia.map(m => `<li>${esc(m)}</li>`).join('')}</ul>
+        <h3 style="margin-top:0">${t('prod.available', 'Available as')}</h3>
+        <ul class="media-pills">${SITE.printMedia.map((m, mi) => `<li><span data-edit="site:printMedia.${mi}">${esc(m)}</span></li>`).join('')}</ul>
         ${buyButtons}
         <div class="trust-row">
-          <span>✓ Fulfilled by Fine Art America</span>
-          <span>✓ 30-day guarantee</span>
-          <span>✓ Ships worldwide</span>
+          <span>✓ ${t('prod.trust1', 'Fulfilled by Fine Art America')}</span>
+          <span>✓ ${t('prod.trust2', '30-day guarantee')}</span>
+          <span>✓ ${t('prod.trust3', 'Ships worldwide')}</span>
         </div>
       </div>
-      <p style="margin-top:1.2rem;font-size:.9rem;opacity:.75">Sizes and pricing are shown at checkout on Fine Art America, my print partner. Your order supports the diving that makes the next photo possible.</p>
+      <p style="margin-top:1.2rem;font-size:.9rem;opacity:.75">${t('prod.note', 'Sizes and pricing are shown at checkout on Fine Art America, my print partner. Your order supports the diving that makes the next photo possible.')}</p>
     </div>
   </div>
 </section>
 <section class="section section-sand">
   <div class="container">
-    <div class="reveal"><div class="kicker">Keep looking</div><h2>More prints</h2></div>
+    <div class="reveal"><div class="kicker">${t('prod.more.kicker', 'Keep looking')}</div><h2>${t('prod.more.h2', 'More prints')}</h2></div>
     <div class="product-grid">
       ${others.map(o => `<a class="product-card reveal" href="/shop/${o.slug}/">
-        <div class="ph"><img src="/assets/img/thumbs/${o.img}.jpg" alt="${esc(o.title)}" loading="lazy" width="480" height="600"></div>
-        <h3>${esc(o.title)}</h3>
+        <div class="ph"><img data-edit-img="${o.img}" src="/assets/img/thumbs/${o.img}.jpg" alt="${esc(o.title)}" loading="lazy" width="480" height="600"></div>
+        <h3><span data-edit="photo:${o.img}:title">${esc(o.title)}</span></h3>
       </a>`).join('')}
     </div>
   </div>
@@ -429,9 +440,9 @@ function contactPage() {
   const crumbs = [['Home', '/'], ['Contact', '/contact/']];
   const body = `
 <div class="page-hero"><div class="container">
-  <div class="kicker">Contact</div>
-  <h1>Say hello</h1>
-  <p class="lede">Prints, licensing, dive-site questions, or just to talk fish — send a note and I'll get back to you.</p>
+  <div class="kicker">${t('contact.kicker', 'Contact')}</div>
+  <h1>${t('contact.h1', 'Say hello')}</h1>
+  <p class="lede">${t('contact.lede', "Prints, licensing, dive-site questions, or just to talk fish — send a note and I'll get back to you.")}</p>
 </div></div>
 <section class="section">
   <div class="container split" style="align-items:start">
@@ -439,12 +450,12 @@ function contactPage() {
       <input type="hidden" name="form-name" value="contact">
       <p style="position:absolute;left:-5000px" aria-hidden="true"><input name="bot-field" tabindex="-1"></p>
       <div class="form-grid">
-        <div><label for="fn">First name *</label><input id="fn" name="first-name" required autocomplete="given-name"></div>
-        <div><label for="ln">Last name *</label><input id="ln" name="last-name" required autocomplete="family-name"></div>
-        <div class="full"><label for="em">Email *</label><input id="em" type="email" name="email" required autocomplete="email"></div>
-        <div class="full"><label for="msg">Message</label><textarea id="msg" name="message"></textarea></div>
+        <div><label for="fn">${t('contact.fn', 'First name *')}</label><input id="fn" name="first-name" required autocomplete="given-name"></div>
+        <div><label for="ln">${t('contact.ln', 'Last name *')}</label><input id="ln" name="last-name" required autocomplete="family-name"></div>
+        <div class="full"><label for="em">${t('contact.em', 'Email *')}</label><input id="em" type="email" name="email" required autocomplete="email"></div>
+        <div class="full"><label for="msg">${t('contact.msg', 'Message')}</label><textarea id="msg" name="message"></textarea></div>
       </div>
-      <button class="btn btn-solid" type="submit" style="margin-top:1rem">Send</button>
+      <button class="btn btn-solid" type="submit" style="margin-top:1rem">${t('contact.send', 'Send')}</button>
     </form>
     <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.contact}" src="/assets/img/gallery/${SITE.homeImages.contact}.jpg" alt="${esc(galleryById[SITE.homeImages.contact].title)}" loading="lazy" width="800" height="600"></div>
   </div>
@@ -519,8 +530,8 @@ function notFound() {
   const body = `
 <section class="section" style="min-height:70vh;display:flex;align-items:center;padding-top:calc(var(--header-h) + 2rem)">
   <div class="container" style="text-align:center">
-    <h1>Lost at sea</h1>
-    <p class="lede" style="margin-inline:auto">This page drifted off. Try one of these currents:</p>
+    <h1>${t('nf.h1', 'Lost at sea')}</h1>
+    <p class="lede" style="margin-inline:auto">${t('nf.lede', 'This page drifted off. Try one of these currents:')}</p>
     <div class="btn-row" style="justify-content:center;margin-top:1.4rem;display:flex;gap:.9rem;flex-wrap:wrap">
       <a class="btn btn-dark" href="/photography/">The gallery</a>
       <a class="btn btn-dark" href="/shop/">The shop</a>
@@ -592,4 +603,5 @@ managePage();
 notFound();
 const slugs = ['/', '/about/', '/photography/', '/shop/', ...SITE.products.map(p => `/shop/${p.slug}/`), '/contact/', '/privacy-policy/'];
 seoFiles(slugs);
+if (TEXT_DIRTY) { fs.writeFileSync(TEXT_FILE, JSON.stringify(TEXT, null, 2)); console.log('  wrote data/text.json'); }
 console.log(`\nDone: ${slugs.length} pages + 404 → site/`);
