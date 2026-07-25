@@ -1,0 +1,10 @@
+[build]
+  command = "pip install pillow && python3 prep-ci.py && node build.js"
+  publish = "site"
+
+[functions]
+  directory = "netlify/functions"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+  NODE_VERSION = "22"

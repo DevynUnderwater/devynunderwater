@@ -1,3 +1,11 @@
+(function () {
+  'use strict';
+  if (location.hash === '#edit') {
+    var s = document.createElement('script');
+    s.src = '/assets/js/edit.js';
+    window.addEventListener('load', function () { document.body.appendChild(s); });
+  }
+})();
 /* Devyn Underwater — header, nav, reveals, film strip, gallery filter, lightbox */
 (function () {
   'use strict';
