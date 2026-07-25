@@ -1,22 +1,19 @@
-/* Production backend for the visual editor: commits edits to GitHub, which
- * triggers the build. Auth: Netlify Identity JWT (invited users only).
+/* Production backend for the visual editor: commits edits through Netlify's
+ * Git Gateway using the editor's own Identity session — no server tokens.
  * v1 handler style — required so context.clientContext.user is populated.
- * Env needed on Netlify: GITHUB_TOKEN (repo-scope), GITHUB_REPO (owner/name).
  */
-const API = 'https://api.github.com';
 const json = (statusCode, obj) => ({ statusCode, body: JSON.stringify(obj), headers: { 'Content-Type': 'application/json' } });
 
-const gh = (token, url, opts = {}) =>
-  fetch(`${API}${url}`, {
+const mkGw = (base, jwt) => (url, opts = {}) =>
+  fetch(`${base}${url}`, {
     ...opts,
     headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'User-Agent': 'devynunderwater-editor',
+      Authorization: `Bearer ${jwt}`,
+      'Content-Type': 'application/json',
       ...(opts.headers || {})
     }
   }).then(async r => {
-    if (!r.ok) throw new Error(`GitHub ${url}: ${r.status} ${await r.text()}`);
+    if (!r.ok) throw new Error(`Gateway ${url}: ${r.status} ${await r.text()}`);
     return r.json();
   });
 
@@ -32,10 +29,8 @@ export const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') return json(405, {});
   const user = context.clientContext?.user;
   if (!user) return json(401, { error: 'Not logged in' });
-
-  const token = process.env.GITHUB_TOKEN;
-  const repo = process.env.GITHUB_REPO;
-  if (!token || !repo) return json(500, { error: 'Server not configured (GITHUB_TOKEN/GITHUB_REPO)' });
+  const jwt = (event.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const gw = mkGw(`https://${event.headers.host}/.netlify/git/github`, jwt);
 
   let payload = {};
   try { payload = JSON.parse(event.body || '{}'); } catch {}
@@ -46,12 +41,12 @@ export const handler = async (event, context) => {
     return json(200, { ok: true, note: 'nothing to save' });
   }
   try {
-    const ref = await gh(token, `/repos/${repo}/git/ref/heads/main`);
+    const ref = await gw('/git/refs/heads/main');
     const baseSha = ref.object.sha;
-    const baseCommit = await gh(token, `/repos/${repo}/git/commits/${baseSha}`);
+    const baseCommit = await gw(`/git/commits/${baseSha}`);
 
     const readFile = async p => {
-      const f = await gh(token, `/repos/${repo}/contents/${p}?ref=main`);
+      const f = await gw(`/contents/${p}?ref=main`);
       return JSON.parse(Buffer.from(f.content, 'base64').toString());
     };
 
@@ -80,7 +75,7 @@ export const handler = async (event, context) => {
       if (!idOk(id)) continue;
       const m = /^data:image\/(jpeg|png);base64,(.+)$/.exec(dataUrl);
       if (!m) continue;
-      const blob = await gh(token, `/repos/${repo}/git/blobs`, {
+      const blob = await gw('/git/blobs', {
         method: 'POST',
         body: JSON.stringify({ content: m[2], encoding: 'base64' })
       });
@@ -97,11 +92,11 @@ export const handler = async (event, context) => {
 
     if (!treeEntries.length) return json(200, { ok: true, note: 'nothing to save' });
 
-    const tree = await gh(token, `/repos/${repo}/git/trees`, {
+    const tree = await gw('/git/trees', {
       method: 'POST',
       body: JSON.stringify({ base_tree: baseCommit.tree.sha, tree: treeEntries })
     });
-    const commit = await gh(token, `/repos/${repo}/git/commits`, {
+    const commit = await gw('/git/commits', {
       method: 'POST',
       body: JSON.stringify({
         message: `Visual edit by ${user.email}`,
@@ -109,7 +104,7 @@ export const handler = async (event, context) => {
         parents: [baseSha]
       })
     });
-    await gh(token, `/repos/${repo}/git/refs/heads/main`, {
+    await gw('/git/refs/heads/main', {
       method: 'PATCH',
       body: JSON.stringify({ sha: commit.sha })
     });

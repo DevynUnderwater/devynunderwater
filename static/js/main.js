@@ -24,7 +24,7 @@
     var w = document.createElement('script');
     w.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
     w.onload = function () {
-      window.netlifyIdentity.on('login', function () { document.location.href = '/admin/'; });
+      window.netlifyIdentity.on('login', function () { document.location.href = '/#edit'; document.location.reload(); });
       window.netlifyIdentity.init();
     };
     document.head.appendChild(w);
