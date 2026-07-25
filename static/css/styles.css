@@ -126,6 +126,10 @@ a:hover { color: #fff; }
 .page-hero h1 { color: var(--cream); }
 .page-hero .lede { color: rgba(245,246,248,.92); max-width: 60ch; }
 .page-hero.dark { background: var(--ink); }
+.page-hero.light { background: var(--sand); color: var(--ink); }
+.page-hero.light h1 { color: var(--ink); }
+.page-hero.light .lede { color: rgba(28, 37, 103, .85); }
+.page-hero.light .kicker { color: var(--teal-deep); opacity: 1; }
 
 /* ---------- sections ---------- */
 .section { padding-block: clamp(3.2rem, 8vw, 6rem); }
