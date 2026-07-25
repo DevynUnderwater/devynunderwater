@@ -10,10 +10,11 @@
     "facebook": ""
   },
   "colors": {
-    "cream": "#F8F8F4",
-    "teal": "#7499A1",
-    "sand": "#DBD9D3",
-    "ink": "#3E3D35"
+    "light": "#F5F6F8",
+    "gray": "#D4D4D4",
+    "navy": "#1C2567",
+    "teal": "#0094AA",
+    "tealDeep": "#007787"
   },
   "faa": {
     "artistUrl": "",
