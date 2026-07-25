@@ -210,7 +210,7 @@ function homePage() {
   </div>
 </section>
 
-<section class="section section-ink">
+<section class="section section-teal">
   <div class="container split">
     <div class="media reveal"><img src="/assets/img/gallery/${SITE.homeImages.shop}.jpg" alt="${esc(galleryById[SITE.homeImages.shop].title)} — available as a print" loading="lazy" width="800" height="600"></div>
     <div class="reveal reveal-d1">
