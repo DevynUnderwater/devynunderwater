@@ -18,29 +18,29 @@
   },
   "faa": {
     "artistUrl": "",
-    "note": "TODO: Devyn's Fine Art America artist profile URL \u2014 fills every product's buy destination. Per-product faaUrl overrides below."
+    "note": "TODO: Devyn's Fine Art America artist profile URL — fills every product's buy destination. Per-product faaUrl overrides below."
   },
   "collections": [
     {
       "id": "s24",
-      "name": "2023\u201324 Season",
+      "name": "2023–24 Season",
       "where": "",
-      "year": "2023\u201324",
-      "blurb": "The early logbooks \u2014 first seasons chasing the small stuff, from frogfish to feather stars."
+      "year": "2023–24",
+      "blurb": "The early logbooks — first seasons chasing the small stuff, from frogfish to feather stars."
     },
     {
       "id": "s25",
-      "name": "2024\u201325 Season",
+      "name": "2024–25 Season",
       "where": "",
-      "year": "2024\u201325",
-      "blurb": "A winter of night dives and a summer of macro \u2014 nudibranchs, gobies, and anemone cities."
+      "year": "2024–25",
+      "blurb": "A winter of night dives and a summer of macro — nudibranchs, gobies, and anemone cities."
     },
     {
       "id": "s26",
       "name": "2026 Season",
       "where": "",
       "year": "2026",
-      "blurb": "The newest work, fresh from the editing bay \u2014 pygmy seahorses, squat lobsters, and friends."
+      "blurb": "The newest work, fresh from the editing bay — pygmy seahorses, squat lobsters, and friends."
     }
   ],
   "printMedia": [
@@ -52,9 +52,9 @@
     "Greeting cards"
   ],
   "copy": {
-    "aboutTeaser": "I'm Devyn \u2014 a macro photographer who spends as much time as possible below the surface. My favorite subjects are the small ones: shrimp the size of a fingernail, frogfish pretending to be sponges, and everything else most divers swim past.",
-    "aboutLong": "What started as a way to remember dives became the reason for them. I shoot macro \u2014 the tiny, strange, spectacular life that hides on every reef and under every pier piling. My home water is Blue Heron Bridge in Florida, one of the best small-critter dive sites anywhere, and my logbook keeps pulling me back to the Caribbean: Cozumel's walls, Roat\u00e1n's reefs, and wherever the next small thing is hiding.",
-    "shopIntro": "Every print is made to order through my print partner, Fine Art America \u2014 museum-grade papers, canvas, metal, acrylic, and framing, with worldwide shipping and a 30-day guarantee. You pick the piece here; their secure checkout handles the rest."
+    "aboutTeaser": "I'm Devyn — a macro photographer who spends as much time as possible below the surface. My favorite subjects are the small ones: shrimp the size of a fingernail, frogfish pretending to be sponges, and everything else most divers swim past.",
+    "aboutLong": "What started as a way to remember dives became the reason for them. I shoot macro — the tiny, strange, spectacular life that hides on every reef and under every pier piling. My home water is Blue Heron Bridge in Florida, one of the best small-critter dive sites anywhere, and my logbook keeps pulling me back to the Caribbean: Cozumel's walls, Roatán's reefs, and wherever the next small thing is hiding.",
+    "shopIntro": "Every print is made to order through my print partner, Fine Art America — museum-grade papers, canvas, metal, acrylic, and framing, with worldwide shipping and a 30-day guarantee. You pick the piece here; their secure checkout handles the rest."
   },
   "homeImages": {
     "history": "s25-28",
