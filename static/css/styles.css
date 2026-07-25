@@ -1,18 +1,18 @@
 /* ==========================================================================
    Devyn Underwater — design system
-   cream #F5F6F8 · teal #0094AA · sand #D4D4D4 · ink #1C2567
+   cream #F5F6F8 · teal #018DAC · sand #D4D4D4 · ink #1C2567
    Type: Avenir (native Apple) → Mulish fallback. Motion respects reduced-motion.
    ========================================================================== */
 
 :root {
   --cream: #F5F6F8;
-  --teal: #0094AA;
-  --teal-deep: #007787;
+  --teal: #018DAC;
+  --teal-deep: #016E86;
   --sand: #D4D4D4;
   --ink: #1C2567;
   --navy-deep: #131A4A;
   --navy-deeper: #0E1334;
-  --teal-bright: #33C3D6;
+  --teal-bright: #33BEDC;
   --ink-90: rgba(28, 37, 103, .9);
   --container: 1200px;
   --gutter: clamp(1rem, 4vw, 2rem);
@@ -242,7 +242,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--teal); }
 @media (max-width: 800px) { .footer-logo img { margin-left: 0; max-width: 240px; } }
 .footer-legal { border-top: 1px solid rgba(245,246,248,.16); padding-block: 1.1rem; display: flex; flex-wrap: wrap; gap: .6rem 1.6rem; justify-content: space-between; font-size: .85rem; color: rgba(245,246,248,.6); }
 
-.notice { background: rgba(0,148,170,.12); border: 1px solid var(--teal); padding: 1rem 1.2rem; font-size: .95rem; }
+.notice { background: rgba(1,141,172,.12); border: 1px solid var(--teal); padding: 1rem 1.2rem; font-size: .95rem; }
 .prose { max-width: 72ch; }
 .prose h2 { margin-top: 2rem; }
 

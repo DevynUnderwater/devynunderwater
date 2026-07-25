@@ -524,7 +524,7 @@ copyDir(path.join(__dirname, 'static', 'img'), path.join(OUT, 'assets', 'img'));
 
 /* favicon: teal wave dot */
 fs.writeFileSync(path.join(OUT, 'assets', 'img', 'favicon.svg'),
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#1C2567"/><path d="M6 19c3-6 7-6 10 0s7 6 10 0" stroke="#0094AA" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="16" cy="10" r="2.4" fill="#F5F6F8"/></svg>`);
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#1C2567"/><path d="M6 19c3-6 7-6 10 0s7 6 10 0" stroke="#018DAC" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="16" cy="10" r="2.4" fill="#F5F6F8"/></svg>`);
 
 homePage();
 aboutPage();
