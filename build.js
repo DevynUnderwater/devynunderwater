@@ -357,7 +357,8 @@ function shopPage() {
         <span class="kicker" style="margin:0">${t('shop.widget.head', 'Every print, ready to order')}</span>
         <span style="font-size:.8rem;opacity:.7">${t('shop.widget.sub', 'Secure checkout · fulfilled by Fine Art America')}</span>
       </div>
-      <iframe src="https://fineartamerica.com/widgetshoppingcart/artwork.html?memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0&height=600" style="display:block;width:100%;height:960px;border:none" title="Print shop — browse and buy Devyn's underwater prints" loading="lazy"></iframe>
+      <script type="text/javascript" src="https://fineartamerica.com/widgetshoppingcart/widgetscripts.php"></script>
+      <iframe id="pixelsshoppingcartiframe" src="https://fineartamerica.com/widgetshoppingcart/artwork.html?memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0&height=600&autoheight=true" style="display: inline-block; width: 100%; height: 820px; border: none; overflow: hidden;" title="Print shop — browse and buy Devyn's underwater prints"></iframe>
     </div>
     <p class="notice" style="margin-top:.8rem;font-size:.85rem;opacity:.75">${t('shop.fallback.pre', 'Shop not loading?')} <a href="${SITE.faa.artistUrl || 'https://fineartamerica.com'}" target="_blank" rel="noopener">${t('shop.fallback.link', 'Open it on Fine Art America')}</a>.</p>`
     : `<div class="product-grid">
