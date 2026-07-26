@@ -2,5 +2,8 @@
   "title": "Coral Macro",
   "set": "s26",
   "heroOrder": 3,
-  "image": "/uploads/gallery/s26-12.jpg"
+  "image": "/uploads/gallery/s26-12.jpg",
+  "faaUrl": "https://fineartamerica.com/featured/confection-devyn-underwater.html",
+  "forSale": true,
+  "slug": "coral-macro"
 }
