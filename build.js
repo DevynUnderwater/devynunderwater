@@ -20,7 +20,8 @@ SITE.products = PHOTOS.filter(p => p.forSale).sort((a, b) => (a.saleOrder ?? 999
   img: p.id,
   title: p.title,
   story: p.story || `${p.title} — an original underwater photograph by Devyn, available as a museum-quality print.`,
-  faaUrl: p.faaUrl || ''
+  faaUrl: p.faaUrl || '',
+  faaId: p.faaId || ''
 }));
 const OUT = path.join(__dirname, 'site');
 const DOMAIN = SITE.domain;
@@ -43,6 +44,7 @@ function copyDir(src, dst) {
 const crypto = require('crypto');
 const hashOf = f => crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, f))).digest('hex').slice(0, 8);
 const CSS_V = hashOf('static/css/styles.css');
+const FAA_CART_V = hashOf('static/js/faa-cart.js');
 /* EDIT_V covers the source plus the stamped repo slug (see below), so both
  * editor changes and a repo transfer invalidate cached copies. */
 const EDIT_V = crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, 'static/js/edit.js'))).update(SITE.repo || '').digest('hex').slice(0, 8);
@@ -351,23 +353,27 @@ function shopPage() {
   const crumbs = [['Home', '/'], ['Shop Prints', '/shop/']];
   /* embedded FAA storefront: browse, cart, and checkout happen in-page —
    * buyers never leave the site. memberId comes from site.json (FAA artist id). */
-  const storefront = SITE.faa.memberId
-    ? `<div class="buy-box" style="padding:0;border-top:3px solid var(--teal)">
-      <div style="display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;align-items:baseline;justify-content:space-between;padding:.9rem 1.2rem;border-bottom:1px solid var(--sand)">
-        <span class="kicker" style="margin:0">${t('shop.widget.head', 'Every print, ready to order')}</span>
-        <span style="font-size:.8rem;opacity:.7">${t('shop.widget.sub', 'Secure checkout · fulfilled by Fine Art America')}</span>
-      </div>
-      <script type="text/javascript" src="https://fineartamerica.com/widgetshoppingcart/widgetscripts.php"></script>
-      <iframe id="pixelsshoppingcartiframe" src="https://fineartamerica.com/widgetshoppingcart/artwork.html?memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0&height=600&autoheight=true" style="display: inline-block; width: 100%; height: 820px; border: none; overflow: hidden;" title="Print shop — browse and buy Devyn's underwater prints"></iframe>
-    </div>
-    <p class="notice" style="margin-top:.8rem;font-size:.85rem;opacity:.75">${t('shop.fallback.pre', 'Shop not loading?')} <a href="${SITE.faa.artistUrl || 'https://fineartamerica.com'}" target="_blank" rel="noopener">${t('shop.fallback.link', 'Open it on Fine Art America')}</a>.</p>`
-    : `<div class="product-grid">
+  const grid = `<div class="product-grid">
       ${SITE.products.map((p, i) => `<a class="product-card reveal${i % 4 ? ` reveal-d${i % 4}` : ''}" href="/shop/${p.slug}/">
         <div class="ph"><img data-edit-img="${p.img}" src="/assets/img/gallery/${p.img}.jpg" alt="${esc(p.title)} — print" loading="lazy" width="480" height="600"></div>
         <h3><span data-edit="photo:${p.img}:title">${esc(p.title)}</span></h3>
         <p>${esc(setName(galleryById[p.img].set))} · ${t('shop.card.sub', 'paper, canvas, metal & more')}</p>
       </a>`).join('')}
     </div>`;
+  /* the full FAA store keeps the persistent multi-item cart; the grid above
+   * is the on-brand browsing layer into per-piece pages + overlay checkout */
+  const storefront = SITE.faa.memberId
+    ? `<div class="reveal" style="margin-top:3rem"><div class="kicker">${t('shop.widget.kicker', 'The full catalog')}</div><h2>${t('shop.widget.h2', 'Browse everything, cart included')}</h2>
+    <p>${t('shop.widget.p', 'Every piece in one place — including new releases the moment they’re out — with a cart for ordering several at once.')}</p></div>
+    <div class="buy-box" style="padding:0;border-top:3px solid var(--teal)">
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;align-items:baseline;justify-content:space-between;padding:.9rem 1.2rem;border-bottom:1px solid var(--sand)">
+        <span class="kicker" style="margin:0">${t('shop.widget.head', 'Every print, ready to order')}</span>
+        <span style="font-size:.8rem;opacity:.7">${t('shop.widget.sub', 'Secure checkout · fulfilled by Fine Art America')}</span>
+      </div>
+      <iframe id="pixelsshoppingcartiframe" src="https://fineartamerica.com/widgetshoppingcart/artwork.html?memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0&height=600&autoheight=true" style="display: inline-block; width: 100%; height: 820px; border: none; overflow: hidden;" title="Print shop — browse and buy Devyn's underwater prints"></iframe>
+    </div>
+    <p class="notice" style="margin-top:.8rem;font-size:.85rem;opacity:.75">${t('shop.fallback.pre', 'Shop not loading?')} <a href="${SITE.faa.artistUrl || 'https://fineartamerica.com'}" target="_blank" rel="noopener">${t('shop.fallback.link', 'Open it on Fine Art America')}</a>.</p>`
+    : '';
   const body = `
 <div class="page-hero"><div class="container">
   <div class="kicker">${t('shop.kicker', 'The print shop')}</div>
@@ -376,6 +382,7 @@ function shopPage() {
 </div></div>
 <section class="section">
   <div class="container">
+    ${grid}
     ${storefront}
     <div class="trust-row" style="margin-top:2rem">
       <span>✓ ${t('shop.trust1', 'Printed & shipped by Fine Art America')}</span>
@@ -384,7 +391,8 @@ function shopPage() {
       <span>✓ ${t('shop.trust4', 'Secure checkout')}</span>
     </div>
   </div>
-</section>`;
+</section>
+<script src="/assets/js/faa-cart.js?v=${FAA_CART_V}" defer></script>`;
   write('shop/index.html', layout({
     slug: '/shop/',
     title: 'Underwater Photography Prints | Devyn Underwater',
@@ -399,10 +407,17 @@ function productPage(p) {
   const crumbs = [['Home', '/'], ['Shop Prints', '/shop/'], [p.title, `/shop/${p.slug}/`]];
   const others = SITE.products.filter(x => x.slug !== p.slug).slice(0, 4);
   const hasFaa = !!p.faaUrl;
-  const buyButtons = hasFaa
-    ? `<a class="btn btn-solid" href="/shop/">${t('prod.buy', 'Buy this print in the shop')}</a>
-        <p style="margin:.7rem 0 0;font-size:.85rem;opacity:.75"><a href="${p.faaUrl}" target="_blank" rel="noopener">${t('prod.alt.link', 'Or view this piece on Fine Art America')}</a></p>`
-    : `<p class="notice">${t('prod.pending.pre', 'Print options for this piece are being set up —')} <a href="/contact/">${t('prod.pending.link', 'contact me')}</a> ${t('prod.pending.post', 'to order it today, or check back soon.')}</p>`;
+  /* native buy button → site-styled overlay hosting FAA's per-artwork
+   * purchase view (size/material picker, cart, checkout — all in-page) */
+  const buyUrl = p.faaId
+    ? `https://fineartamerica.com/widgetshoppingcart/showProduct.php?memberidtype=artistid&memberid=${SITE.faa.memberId}&artworkid=${p.faaId}&domainid=0&product=print`
+    : '';
+  const buyButtons = buyUrl
+    ? `<button class="btn btn-solid" type="button" data-faa-buy="${buyUrl}">${t('prod.buy2', 'Buy this print')}</button>
+        <p style="margin:.7rem 0 0;font-size:.85rem;opacity:.75">${t('prod.buy2.sub', 'Opens the order window right here — choose paper, canvas, metal, framing, and size.')}</p>`
+    : hasFaa
+      ? `<a class="btn btn-solid" href="/shop/">${t('prod.buy', 'Buy this print in the shop')}</a>`
+      : `<p class="notice">${t('prod.pending.pre', 'Print options for this piece are being set up —')} <a href="/contact/">${t('prod.pending.link', 'contact me')}</a> ${t('prod.pending.post', 'to order it today, or check back soon.')}</p>`;
   const body = `
 <div class="page-hero dark"><div class="container">
   <div class="kicker">${esc(setName(g.set))} · ${SITE.collections.find(c => c.id === g.set).year}</div>
@@ -427,6 +442,7 @@ function productPage(p) {
     </div>
   </div>
 </section>
+<script src="/assets/js/faa-cart.js?v=${FAA_CART_V}" defer></script>
 <section class="section section-sand">
   <div class="container">
     <div class="reveal"><div class="kicker">${t('prod.more.kicker', 'Keep looking')}</div><h2>${t('prod.more.h2', 'More prints')}</h2></div>

@@ -72,5 +72,10 @@
   "prod.buy": "Buy this print in the shop",
   "prod.alt.link": "Or view this piece on Fine Art America",
   "shop.widget.head": "Every print, ready to order",
-  "shop.widget.sub": "Secure checkout · fulfilled by Fine Art America"
+  "shop.widget.sub": "Secure checkout · fulfilled by Fine Art America",
+  "shop.widget.kicker": "The full catalog",
+  "shop.widget.h2": "Browse everything, cart included",
+  "shop.widget.p": "Every piece in one place — including new releases the moment they’re out — with a cart for ordering several at once.",
+  "prod.buy2": "Buy this print",
+  "prod.buy2.sub": "Opens the order window right here — choose paper, canvas, metal, framing, and size."
 }
