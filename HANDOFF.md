@@ -7,20 +7,15 @@ deploy exists only to keep collecting contact-form submissions during the
 transition. Both editing surfaces (`/#edit` and `/admin`) commit straight to
 GitHub with a personal access token — no Netlify Identity, no Git Gateway.
 
-## 1. Transfer the repo to her account (Kevin, with her login)
+## 1. Transfer the repo to her account — ✅ DONE 2026-07-25
 
-1. github.com/Kevin-Mentatix/devynunderwater → Settings → General →
-   Danger Zone → **Transfer ownership** → her username.
-2. On **her** repo: Settings → Collaborators → add `Kevin-Mentatix`
-   (keeps your git push access for maintenance).
-3. Settings → Actions → General: confirm Actions are allowed (transfers
-   sometimes disable them). Actions tab → "Build & publish" → **Run workflow**
-   once to confirm it deploys.
-4. Settings → Pages: Source should read **GitHub Actions**. Set
-   **Custom domain: www.devynunderwater.com** if it didn't carry over.
-5. Flip one field in `data/site.json`:
-   `"repo": "HERUSERNAME/devynunderwater"` — commit and push. (This re-stamps
-   the editor and /admin config; the cache-busting hash changes with it.)
+Repo lives at **DevynUnderwater/devynunderwater**. The transfer preserved
+Kevin's push access (collaborator, no admin), the Pages workflow source,
+the custom domain setting, and the active workflow. `data/site.json`
+`repo` field flipped and pushed.
+
+Owner-only settings (Pages, Actions policies, Enforce HTTPS) are now her
+taps — anything in Settings needs her device, not Kevin's.
 
 ## 2. Create her editing key (AFTER the transfer — order matters)
 
@@ -57,10 +52,10 @@ Delete the parked/forwarding records on `@` and `www` first, then add:
 | AAAA  | @    | 2606:50c0:8001::153 |
 | AAAA  | @    | 2606:50c0:8002::153 |
 | AAAA  | @    | 2606:50c0:8003::153 |
-| CNAME | www  | HERUSERNAME.github.io |
+| CNAME | www  | devynunderwater.github.io |
 
-⚠️ CNAME points at `HERUSERNAME.github.io` — bare username, no repo name,
-and it changes with the transfer (not kevin-mentatix).
+⚠️ CNAME points at `devynunderwater.github.io` (her account's Pages host) —
+bare username, no repo name.
 
 Then in repo Settings → Pages: tick **Enforce HTTPS** when the checkbox
 activates (cert can take up to 24 h; usually minutes). With custom domain
