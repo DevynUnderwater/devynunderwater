@@ -23,6 +23,7 @@
     '<span class="eb-actions">' +
     '<span id="eb-count">No changes yet</span>' +
     '<a id="eb-admin" href="/admin/" style="font:800 13px Avenir,Mulish,sans-serif;letter-spacing:.05em;text-transform:uppercase;padding:.5rem 1.1rem;border:1.5px solid #F5F6F8;color:#F5F6F8;text-decoration:none">＋ Add photos</a>' +
+    '<button id="eb-draft" disabled>Save draft</button>' +
     '<button id="eb-save" disabled>Save &amp; publish</button>' +
     '<button id="eb-exit">Exit</button></span>';
   var style = document.createElement('style');
@@ -58,6 +59,41 @@
     var n = Object.keys(texts).length + Object.keys(images).length;
     document.getElementById('eb-count').textContent = n ? n + ' unsaved change' + (n > 1 ? 's' : '') : 'No changes yet';
     document.getElementById('eb-save').disabled = !n;
+    document.getElementById('eb-draft').disabled = !n;
+  }
+
+  /* ---------- drafts: keep work on this device without publishing ---------- */
+  var DRAFT_KEY = 'eb-draft';
+  function draftSnapshot() { return JSON.stringify({ texts: texts, images: images }); }
+  function saveDraft() {
+    try {
+      localStorage.setItem(DRAFT_KEY, draftSnapshot());
+      say('Draft saved on this device — nothing is published until you hit Save & publish.');
+    } catch (e) {
+      say('Draft too big to store (photos take a lot of space) — publish instead, or remove a photo change.');
+    }
+  }
+  function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
+  function restoreDraft() {
+    var raw;
+    try { raw = localStorage.getItem(DRAFT_KEY); } catch (e) { return; }
+    if (!raw) return;
+    var d;
+    try { d = JSON.parse(raw); } catch (e) { clearDraft(); return; }
+    texts = d.texts || {};
+    images = d.images || {};
+    Object.keys(texts).forEach(function (key) {
+      var el = document.querySelector('[data-edit="' + key.replace(/"/g, '') + '"]');
+      if (el && el.textContent !== texts[key]) { el.textContent = texts[key]; el.classList.add('eb-dirty'); }
+    });
+    Object.keys(images).forEach(function (id) {
+      [].slice.call(document.querySelectorAll('[data-edit-img="' + id + '"]')).forEach(function (im) {
+        im.src = images[id];
+        im.classList.add('eb-img-dirty');
+      });
+    });
+    dirtyCount();
+    say('Draft restored — keep editing, or Save & publish when you’re ready.');
   }
 
   /* ---------- text editing ---------- */
@@ -298,6 +334,7 @@
         .then(function (out) {
           if (!out.ok) throw new Error(out.j.error || 'save failed');
           texts = {}; images = {};
+          clearDraft();
           say('Saved. Reloading…');
           setTimeout(function () { location.reload(); }, 900);
         })
@@ -315,6 +352,7 @@
     var run = function (tk, retriedAuth) {
       ghSave(tk).then(function () {
         texts = {}; images = {};
+        clearDraft();
         say('Saved ✓ Your changes go live in about two minutes.');
         dirtyCount();
       }).catch(function (e) {
@@ -333,11 +371,17 @@
     run(token, false);
   });
 
+  document.getElementById('eb-draft').addEventListener('click', saveDraft);
+
   document.getElementById('eb-exit').addEventListener('click', function () {
-    if (Object.keys(texts).length + Object.keys(images).length &&
-        !confirm('You have unsaved changes — leave anyway?')) return;
+    var dirty = Object.keys(texts).length + Object.keys(images).length;
+    var stashed;
+    try { stashed = localStorage.getItem(DRAFT_KEY); } catch (e) {}
+    if (dirty && stashed !== draftSnapshot() &&
+        !confirm('You have changes that aren’t saved as a draft or published — leave anyway?')) return;
     location.href = location.pathname;
   });
 
+  restoreDraft();
   dirtyCount();
 })();
