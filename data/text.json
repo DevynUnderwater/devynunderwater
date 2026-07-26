@@ -78,5 +78,6 @@
   "shop.widget.p": "Every piece in one place — including new releases the moment they’re out — with a cart for ordering several at once.",
   "prod.buy2": "Print options",
   "prod.buy2.sub": "Both open the order window right here — pick the size, material, or item, then check out securely.",
-  "prod.buyAll": "Mugs, totes & more"
+  "prod.buyAll": "Mugs, totes & more",
+  "nav.cart": "Cart"
 }

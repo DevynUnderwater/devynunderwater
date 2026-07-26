@@ -101,6 +101,12 @@ const NAV = [
   ['Contact', '/contact/']
 ];
 function header(active) {
+  /* live FAA cart in the menu: opens the real cart (session-persistent)
+   * in the site-styled overlay; falls back to /shop/ without JS */
+  const cartUrl = `https://fineartamerica.com/widgetshoppingcart/shoppingcart.html?memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0&flagwidget=true&widgettype=standard`;
+  const cartItem = SITE.faa.memberId
+    ? `<li><a class="nav-cart" href="/shop/" data-faa-buy="${cartUrl}" title="Your cart" aria-label="Shopping cart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:.35rem" aria-hidden="true"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2.5 3h2l2.6 12.5a2 2 0 0 0 2 1.5h9.2a2 2 0 0 0 2-1.6L22 7H6"/></svg>${t('nav.cart', 'Cart')}</a></li>`
+    : '';
   return `<header class="site-header">
   <div class="container bar">
     <a class="logo" href="/" aria-label="Devyn Underwater — home"><img src="/assets/img/logo-white.png" alt="Devyn Underwater" width="160" height="100"></a>
@@ -109,6 +115,7 @@ function header(active) {
       <ul>
         ${NAV.slice(0, 4).map(([l, h], i) => `<li><a href="${h}"${h === active ? ' aria-current="page"' : ''}>${t('nav.' + i, l)}</a></li>`).join('')}
         <li><a class="nav-cta" href="/contact/"${active === '/contact/' ? ' aria-current="page"' : ''}>${t('nav.cta', 'Contact')}</a></li>
+        ${cartItem}
       </ul>
     </nav>
   </div>
@@ -181,6 +188,7 @@ ${footer()}
   <p class="lb-cap"></p>
 </div>
 <script src="/assets/js/main.js?v=${JS_V}" defer></script>
+<script src="/assets/js/faa-cart.js?v=${FAA_CART_V}" defer></script>
 </body>
 </html>`;
 }
@@ -391,8 +399,7 @@ function shopPage() {
       <span>✓ ${t('shop.trust4', 'Secure checkout')}</span>
     </div>
   </div>
-</section>
-<script src="/assets/js/faa-cart.js?v=${FAA_CART_V}" defer></script>`;
+</section>`;
   write('shop/index.html', layout({
     slug: '/shop/',
     title: 'Underwater Photography Prints | Devyn Underwater',
@@ -449,7 +456,6 @@ function productPage(p) {
     </div>
   </div>
 </section>
-<script src="/assets/js/faa-cart.js?v=${FAA_CART_V}" defer></script>
 <section class="section section-sand">
   <div class="container">
     <div class="reveal"><div class="kicker">${t('prod.more.kicker', 'Keep looking')}</div><h2>${t('prod.more.h2', 'More prints')}</h2></div>
