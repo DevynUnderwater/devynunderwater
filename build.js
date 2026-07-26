@@ -63,6 +63,12 @@ const t = (key, def) => {
 const galleryById = Object.fromEntries(SITE.gallery.map(g => [g.id, g]));
 const setName = id => (SITE.collections.find(c => c.id === id) || {}).name || id;
 
+/* social mention: a link once the URL is filled in (/admin → Social links), plain word until then */
+const SOCIAL_NAMES = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok' };
+const socialWord = (key, label) => SITE.socials[key]
+  ? `<a href="${SITE.socials[key]}" target="_blank" rel="noopener">${label}</a>`
+  : label;
+
 /* FAA deep-link helper: verified ?product= values only */
 const FAA_MEDIA = [
   { label: 'Fine art paper', param: '' },
@@ -125,7 +131,7 @@ function footer() {
       <div>
         <h4>${t('footer.elsewhere', 'Elsewhere')}</h4>
         <ul>
-          ${socials.length ? socials.map(([k, v]) => `<li><a href="${v}" target="_blank" rel="noopener">${k[0].toUpperCase() + k.slice(1)}</a></li>`).join('') : '<li><span style="opacity:.6">Social links coming soon</span></li>'}
+          ${socials.length ? socials.map(([k, v]) => `<li><a href="${v}" target="_blank" rel="noopener">${SOCIAL_NAMES[k] || k[0].toUpperCase() + k.slice(1)}</a></li>`).join('') : '<li><span style="opacity:.6">Social links coming soon</span></li>'}
           ${SITE.faa.artistUrl ? `<li><a href="${SITE.faa.artistUrl}" target="_blank" rel="noopener">Fine Art America</a></li>` : ''}
         </ul>
       </div>
@@ -286,7 +292,8 @@ function aboutPage() {
     <div class="prose reveal">
       <p data-edit="site:copy.aboutLong">${esc(SITE.copy.aboutLong)}</p>
       <p>${t('about.p2', "Macro photography rewards patience more than luck: hovering still enough, long enough, for a shrimp to go back to work or a frogfish to forget you exist. That's the part I love — the ocean carries on like you're not there, and every so often it lets you keep a frame of it.")}</p>
-      <p>${t('about.p3a', 'Everything on this site was shot by me, on dives I logged. If you want to know the story behind a photo — or the dive site —')} <a href="/contact/">${t('about.p3link', 'ask')}</a>.</p>
+      <p>${t('about.p3', 'That challenge deepened my adoration of the small, easily overlooked details of life below the surface - the intricate textures of obscure macro life, the galaxy found within an animal’s eye, the quiet architecture of coral most divers swim right past without a second look. Underwater macro rewards patience more than luck: hovering still enough, long enough, for a fish to “kiss” its eggs or a frogfish to “yawn”. That’s the part I love most - when the ocean carries on like you’re not there, and every so often you capture a frame of it.')}</p>
+      <p>${t('about.p3a', 'Everything on this site was shot by me, on dives I logged. If you want to know the story behind a photo — or the dive site —')} <a href="/contact/">${t('about.p3link', 'ask')}</a>. You can follow along on ${socialWord('instagram', 'Instagram')} and ${socialWord('tiktok', 'TikTok')} to see more of what I create, or visit the <a href="/shop/">prints</a> page if you’d like to bring a piece of the reef home!</p>
     </div>
     <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.aboutMedia}" src="/assets/img/gallery/${SITE.homeImages.aboutMedia}.jpg" alt="${esc(galleryById[SITE.homeImages.aboutMedia].title)} — underwater macro photo" loading="lazy" width="800" height="600"></div>
   </div>

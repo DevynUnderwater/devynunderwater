@@ -94,6 +94,7 @@ collections:
             widget: object
             fields:
               - { label: "Instagram URL", name: instagram, widget: string, required: false, default: "" }
+              - { label: "TikTok URL", name: tiktok, widget: string, required: false, default: "" }
               - { label: "Facebook URL", name: facebook, widget: string, required: false, default: "" }
           - label: "Fine Art America"
             name: faa
