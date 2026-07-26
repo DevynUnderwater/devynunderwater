@@ -409,12 +409,19 @@ function productPage(p) {
   const hasFaa = !!p.faaUrl;
   /* native buy button → site-styled overlay hosting FAA's per-artwork
    * purchase view (size/material picker, cart, checkout — all in-page) */
+  const widgetParams = `memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0`;
+  /* print → the clean wall-art configurator; everything else → the artwork's
+   * widget-mode page (flagwidget) listing every product type she sells it as */
   const buyUrl = p.faaId
-    ? `https://fineartamerica.com/widgetshoppingcart/showProduct.php?memberidtype=artistid&memberid=${SITE.faa.memberId}&artworkid=${p.faaId}&domainid=0&product=print`
+    ? `https://fineartamerica.com/widgetshoppingcart/showProduct.php?${widgetParams}&artworkid=${p.faaId}&product=print`
     : '';
+  const moreUrl = p.faaUrl ? `${p.faaUrl}?${widgetParams}&flagwidget=true&widgettype=standard` : '';
   const buyButtons = buyUrl
-    ? `<button class="btn btn-solid" type="button" data-faa-buy="${buyUrl}">${t('prod.buy2', 'Buy this print')}</button>
-        <p style="margin:.7rem 0 0;font-size:.85rem;opacity:.75">${t('prod.buy2.sub', 'Opens the order window right here — choose paper, canvas, metal, framing, and size.')}</p>`
+    ? `<div class="btn-row" style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn btn-solid" type="button" data-faa-buy="${buyUrl}">${t('prod.buy2', 'Print options')}</button>
+          <button class="btn btn-dark" type="button" data-faa-buy="${moreUrl}">${t('prod.buyAll', 'Mugs, totes & more')}</button>
+        </div>
+        <p style="margin:.7rem 0 0;font-size:.85rem;opacity:.75">${t('prod.buy2.sub', 'Both open the order window right here — pick the size, material, or item, then check out securely.')}</p>`
     : hasFaa
       ? `<a class="btn btn-solid" href="/shop/">${t('prod.buy', 'Buy this print in the shop')}</a>`
       : `<p class="notice">${t('prod.pending.pre', 'Print options for this piece are being set up —')} <a href="/contact/">${t('prod.pending.link', 'contact me')}</a> ${t('prod.pending.post', 'to order it today, or check back soon.')}</p>`;
