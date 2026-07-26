@@ -276,12 +276,44 @@ function homePage() {
     <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.contact}" src="/assets/img/gallery/${SITE.homeImages.contact}.jpg" alt="${esc(galleryById[SITE.homeImages.contact].title)}" loading="lazy" width="800" height="600"></div>
   </div>
 </section>`;
-  write('index.html', layout({
+  /* prelaunch: the public root is a construction page; the real homepage
+   * builds at /home-preview/ so edits continue (same data-edit bindings). */
+  write(SITE.prelaunch ? 'home-preview/index.html' : 'index.html', layout({
     slug: '/',
     title: 'Devyn Underwater | Underwater Macro Photography & Prints',
     description: 'Underwater macro photography from Blue Heron Bridge, Cozumel, and Roatán — and museum-quality prints of select works. Discover the secrets of the ocean.',
     body
   }));
+  if (SITE.prelaunch) write('index.html', `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devyn Underwater — Coming Soon</title>
+<meta name="description" content="Underwater macro photography & prints. Surfacing soon.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;500;800&display=swap">
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#1C2567;color:#F5F6F8;font-family:Mulish,Avenir,sans-serif;text-align:center}
+  .wrap{padding:2rem;max-width:640px}
+  img{max-width:240px;height:auto}
+  h1{font-weight:300;font-size:clamp(1.5rem,4vw,2.2rem);letter-spacing:.02em;margin:1.6rem 0 .4rem}
+  p{font-weight:300;opacity:.85;font-size:1.05rem;line-height:1.6;margin:.4rem 0}
+  .wave{margin:1.8rem auto 0;display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img src="/assets/img/logo-white.png" alt="Devyn Underwater" width="240" height="150">
+  <h1>Something beautiful is surfacing</h1>
+  <p>Underwater macro photography &amp; fine-art prints.<br>Coming soon.</p>
+  <svg class="wave" width="120" height="28" viewBox="0 0 120 28" aria-hidden="true"><path d="M4 18c12-20 26-20 38 0s26 20 38 0 26-20 36 0" stroke="#018DAC" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+</div>
+</body>
+</html>`);
 }
 
 function aboutPage() {
@@ -544,11 +576,12 @@ function privacyPage() {
 }
 
 function managePage() {
+  const home = SITE.prelaunch ? '/home-preview/' : '/';
   const tools = [
-    { t: '✏️ Quick edit mode', h: '/#edit', d: 'Fix any text and swap photos right on the page, then hit Save & publish. The first time on a new device it asks for your editing key.' },
+    { t: '✏️ Quick edit mode', h: home + '#edit', d: 'Fix any text and swap photos right on the page, then hit Save & publish. The first time on a new device it asks for your editing key.' },
     { t: '📝 Edit your website', h: '/admin/', d: 'Add new photos, edit copy, manage the print shop. Sign in with your editing key ("Sign In with Token"). Hit Publish when done — the site rebuilds itself in about two minutes.' },
     { t: '🖼 Your Fine Art America account', h: 'https://fineartamerica.com/login.html', d: 'Upload images for sale, set your prices and markups. Paste each artwork\'s FAA link into the matching product in the editor and buy buttons go live.' },
-    { t: '👀 View the live site', h: '/', d: 'See what visitors see. Changes appear a couple of minutes after you publish.' }
+    { t: '👀 View the live site', h: home, d: SITE.prelaunch ? 'Your site as visitors will see it at launch. Right now the public front door shows a "coming soon" page instead.' : 'See what visitors see. Changes appear a couple of minutes after you publish.' }
   ];
   const body = `
 <div class="page-hero"><div class="container">
