@@ -1,12 +1,11 @@
-# Devyn's content editor at /admin/ — Sveltia CMS (Decap-compatible config)
+# Devyn's content editor at /admin/ — Sveltia CMS
+# GitHub backend, token sign-in only (she pastes her editing key once;
+# Sveltia keeps it in the browser). __REPO__ is stamped by build.js.
 backend:
-  name: git-gateway
+  name: github
+  repo: __REPO__
   branch: main
-# (alternative github-OAuth backend:)
-# backend:
-#   name: github
-#   repo: Kevin-Mentatix/devynunderwater
-#   branch: main
+  auth_methods: [token]
 
 # Local review without login: the editor offers "Work with Local Repository"
 # in Chrome, or run: npx decap-server

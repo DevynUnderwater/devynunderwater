@@ -43,7 +43,9 @@ function copyDir(src, dst) {
 const crypto = require('crypto');
 const hashOf = f => crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, f))).digest('hex').slice(0, 8);
 const CSS_V = hashOf('static/css/styles.css');
-const EDIT_V = hashOf('static/js/edit.js');
+/* EDIT_V covers the source plus the stamped repo slug (see below), so both
+ * editor changes and a repo transfer invalidate cached copies. */
+const EDIT_V = crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, 'static/js/edit.js'))).update(SITE.repo || '').digest('hex').slice(0, 8);
 /* main.js lazy-loads edit.js, and /assets/* is cached immutable — so the
  * edit.js URL must be versioned, and its version must ripple into main.js's
  * version (pages → main.js?v → edit.js?v) or browsers keep the old editor. */
@@ -457,7 +459,7 @@ function contactPage() {
 </div></div>
 <section class="section">
   <div class="container split" style="align-items:start">
-    <form class="reveal" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/contact/?sent=1">
+    <form class="reveal" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="https://devynunderwater.netlify.app/contact/?sent=1">
       <input type="hidden" name="form-name" value="contact">
       <p style="position:absolute;left:-5000px" aria-hidden="true"><input name="bot-field" tabindex="-1"></p>
       <div class="form-grid">
@@ -508,7 +510,8 @@ function privacyPage() {
 
 function managePage() {
   const tools = [
-    { t: '📝 Edit your website', h: '/admin/', d: 'Add photos, fix titles, edit copy, manage the print shop. Hit Publish when done — the site rebuilds itself in about two minutes.' },
+    { t: '✏️ Quick edit mode', h: '/#edit', d: 'Fix any text and swap photos right on the page, then hit Save & publish. The first time on a new device it asks for your editing key.' },
+    { t: '📝 Edit your website', h: '/admin/', d: 'Add new photos, edit copy, manage the print shop. Sign in with your editing key ("Sign In with Token"). Hit Publish when done — the site rebuilds itself in about two minutes.' },
     { t: '🖼 Your Fine Art America account', h: 'https://fineartamerica.com/login.html', d: 'Upload images for sale, set your prices and markups. Paste each artwork\'s FAA link into the matching product in the editor and buy buttons go live.' },
     { t: '👀 View the live site', h: '/', d: 'See what visitors see. Changes appear a couple of minutes after you publish.' }
   ];
@@ -525,7 +528,8 @@ function managePage() {
         <h3 style="margin-top:0">${x.t}</h3><p style="opacity:.8">${x.d}</p>
       </a>`).join('')}
     </div>
-    <p class="notice" style="margin-top:2rem">Adding photos: upload the JPG exactly as you export it from Lightroom — the site resizes everything automatically. Give it a title, pick a collection, publish. Done.</p>
+    <p class="notice" style="margin-top:2rem">Adding photos: upload the JPG exactly as you export it from Lightroom — any size works, the site resizes everything automatically. Give it a title, pick a collection, publish. Done.</p>
+    <p class="notice">Your editing key: keep it saved in your password notes. Tip — add this page to your iPad Home Screen so the key never gets cleared out by Safari.</p>
   </div>
 </section>`;
   write('manage/index.html', layout({
@@ -595,8 +599,12 @@ copyDir(path.join(__dirname, 'static', 'css'), path.join(OUT, 'assets', 'css'));
 copyDir(path.join(__dirname, 'static', 'js'), path.join(OUT, 'assets', 'js'));
 const mainOut = path.join(OUT, 'assets', 'js', 'main.js');
 fs.writeFileSync(mainOut, fs.readFileSync(mainOut, 'utf8').replace("'/assets/js/edit.js'", "'/assets/js/edit.js?v=" + EDIT_V + "'"));
+const editOut = path.join(OUT, 'assets', 'js', 'edit.js');
+fs.writeFileSync(editOut, fs.readFileSync(editOut, 'utf8').replace(/__REPO__/g, SITE.repo));
 copyDir(path.join(__dirname, 'static', 'img'), path.join(OUT, 'assets', 'img'));
 copyDir(path.join(__dirname, 'static', 'admin'), path.join(OUT, 'admin'));
+const admOut = path.join(OUT, 'admin', 'config.yml');
+fs.writeFileSync(admOut, fs.readFileSync(admOut, 'utf8').replace(/__REPO__/g, SITE.repo));
 if (fs.existsSync(path.join(__dirname, 'uploads'))) {
   copyDir(path.join(__dirname, 'uploads'), path.join(OUT, 'uploads'));
 }

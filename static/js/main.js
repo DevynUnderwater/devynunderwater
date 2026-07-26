@@ -1,9 +1,9 @@
 (function () {
   'use strict';
-  /* floating Edit button for logged-in editors (production only) */
+  /* floating Edit button for editors (anyone who has saved an editing key here) */
   if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) || location.hash === '#edit') return;
   try {
-    if (localStorage.getItem('gotrue.user')) {
+    if (localStorage.getItem('eb-gh-token')) {
       var b = document.createElement('a');
       b.id = 'edit-fab';
       b.href = '#edit';
@@ -16,19 +16,6 @@
       window.addEventListener('load', function () { document.body.appendChild(b); });
     }
   } catch (e) {}
-})();
-(function () {
-  'use strict';
-  /* catch Netlify Identity invite/recovery links so her signup "just works" */
-  if (/^#(invite_token|recovery_token|confirmation_token)/.test(location.hash)) {
-    var w = document.createElement('script');
-    w.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
-    w.onload = function () {
-      window.netlifyIdentity.on('login', function () { document.location.href = '/#edit'; document.location.reload(); });
-      window.netlifyIdentity.init();
-    };
-    document.head.appendChild(w);
-  }
 })();
 (function () {
   'use strict';

@@ -1,11 +1,15 @@
 /* Devyn Underwater — in-context visual editor.
  * Activated by opening any page with #edit. Click text to edit it in place,
- * click a photo to replace it. Save commits the changes and rebuilds the site.
+ * click a photo to replace it. Save commits the changes straight to GitHub
+ * (with the editor's own access key); GitHub Actions rebuilds the site.
+ * __REPO__ is stamped by build.js from data/site.json.
  */
 (function () {
   'use strict';
   var IS_LOCAL = /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
-  var ENDPOINT = IS_LOCAL ? 'http://127.0.0.1:8791/save' : '/.netlify/functions/save-edits';
+  var ENDPOINT = 'http://127.0.0.1:8791/save';
+  var REPO = '__REPO__';
+  var BRANCH = localStorage.getItem('eb-branch') || 'main';
 
   var texts = {};   // "site:copy.aboutTeaser" -> new value
   var images = {};  // photoId -> dataURL
@@ -145,12 +149,6 @@
     shrink(f, function (dataUrl) {
       if (!dataUrl) { say('Could not read that file — try a JPG or PNG.'); return; }
       var id = target.getAttribute('data-edit-img');
-      var pending = 0;
-      for (var k in images) if (k !== id) pending += images[k].length;
-      if (pending && pending + dataUrl.length > 4.5 * 1024 * 1024) {
-        say('That’s a lot of photos in one go — hit Save & publish first, then replace this one.');
-        return;
-      }
       images[id] = dataUrl;
       /* live preview everywhere this photo appears */
       [].slice.call(document.querySelectorAll('[data-edit-img="' + id + '"]')).forEach(function (im) {
@@ -163,11 +161,134 @@
     picker.value = '';
   });
 
-  /* ---------- save ---------- */
+  /* ---------- save: straight-to-GitHub commit ---------- */
+  function getToken(forceAsk) {
+    var t = localStorage.getItem('eb-gh-token');
+    if (!t || forceAsk) {
+      t = (prompt('Paste your site editing key to publish:') || '').trim();
+      if (t) localStorage.setItem('eb-gh-token', t);
+    }
+    return t;
+  }
+  function gh(token, path, opts) {
+    return fetch('https://api.github.com/repos/' + REPO + path, Object.assign({}, opts, {
+      headers: Object.assign({
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      }, (opts || {}).headers || {})
+    })).then(function (r) {
+      if (r.status === 401 || r.status === 403) { var e = new Error('bad-token'); e.auth = true; throw e; }
+      if (!r.ok) return r.text().then(function (t) { throw new Error(path + ': ' + r.status + ' ' + t.slice(0, 120)); });
+      return r.json();
+    });
+  }
+  function setPath(obj, dotted, value) {
+    var parts = dotted.split('.');
+    var o = obj;
+    for (var i = 0; i < parts.length - 1; i++) o = o[parts[i]] = o[parts[i]] || {};
+    o[parts[parts.length - 1]] = value;
+  }
+  function fromB64(b64) {
+    var bin = atob(b64.replace(/\n/g, ''));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  var idOk = function (s) { return /^[a-z0-9-]+$/.test(s); };
+
+  function ghSave(token) {
+    var readFile = function (p) {
+      return gh(token, '/contents/' + p + '?ref=' + BRANCH)
+        .then(function (f) { return JSON.parse(fromB64(f.content)); });
+    };
+    /* a sha:null tree entry for a path missing from the base tree 422s,
+     * so only queue deletions for exports that actually exist */
+    var fileExists = function (p) {
+      return fetch('https://api.github.com/repos/' + REPO + '/contents/' + p + '?ref=' + BRANCH, {
+        method: 'HEAD',
+        headers: { Authorization: 'Bearer ' + token }
+      }).then(function (r) { return r.ok; });
+    };
+    var treeEntries = [];
+    var putJson = function (p, obj) {
+      treeEntries.push({ path: p, mode: '100644', type: 'blob', content: JSON.stringify(obj, null, 2) });
+    };
+    var baseSha, site = null, textMap = null;
+    var photoCache = {};
+    var fileReads = Promise.resolve();
+
+    Object.keys(texts).forEach(function (key) {
+      fileReads = fileReads.then(function () {
+        var value = String(texts[key]).slice(0, 5000).trim();
+        var kind = key.split(':')[0];
+        var rest = key.split(':').slice(1);
+        if (kind === 'site') {
+          return (site ? Promise.resolve(site) : readFile('data/site.json').then(function (s) { site = s; return s; }))
+            .then(function (s) { setPath(s, rest[0], value); });
+        }
+        if (kind === 'text') {
+          return (textMap ? Promise.resolve(textMap) : readFile('data/text.json').catch(function () { return {}; }).then(function (t) { textMap = t; return t; }))
+            .then(function (t) { t[rest.join(':')] = value; });
+        }
+        if (kind === 'photo') {
+          var id = rest[0], field = rest[1];
+          if (!idOk(id) || ['title', 'story'].indexOf(field) < 0) return;
+          return (photoCache[id] ? Promise.resolve(photoCache[id]) : readFile('content/photos/' + id + '.json').then(function (p) { photoCache[id] = p; return p; }))
+            .then(function (p) { p[field] = value; });
+        }
+      });
+    });
+
+    return fileReads.then(function () {
+      /* image blobs */
+      var imgWork = Promise.resolve();
+      Object.keys(images).forEach(function (id) {
+        if (!idOk(id)) return;
+        var m = /^data:image\/(jpeg|png);base64,(.+)$/.exec(images[id]);
+        if (!m) return;
+        imgWork = imgWork.then(function () {
+          return gh(token, '/git/blobs', { method: 'POST', body: JSON.stringify({ content: m[2], encoding: 'base64' }) })
+            .then(function (blob) {
+              treeEntries.push({ path: 'uploads/gallery/' + id + '.jpg', mode: '100644', type: 'blob', sha: blob.sha });
+              return Promise.all(['gallery', 'thumbs', 'hero'].map(function (dir) {
+                var p = 'static/img/' + dir + '/' + id + '.jpg';
+                return fileExists(p).then(function (yes) {
+                  if (yes) treeEntries.push({ path: p, mode: '100644', type: 'blob', sha: null });
+                });
+              }));
+            })
+            .then(function () {
+              return photoCache[id] ? photoCache[id] : readFile('content/photos/' + id + '.json').catch(function () { return null; });
+            })
+            .then(function (p) {
+              if (p) { photoCache[id] = p; p.image = '/uploads/gallery/' + id + '.jpg'; }
+            });
+        });
+      });
+      return imgWork;
+    }).then(function () {
+      if (site) putJson('data/site.json', site);
+      if (textMap) putJson('data/text.json', textMap);
+      Object.keys(photoCache).forEach(function (id) {
+        if (photoCache[id]) putJson('content/photos/' + id + '.json', photoCache[id]);
+      });
+      if (!treeEntries.length) return { noop: true };
+      return gh(token, '/git/ref/heads/' + BRANCH).then(function (ref) {
+        baseSha = ref.object.sha;
+        return gh(token, '/git/commits/' + baseSha);
+      }).then(function (baseCommit) {
+        return gh(token, '/git/trees', { method: 'POST', body: JSON.stringify({ base_tree: baseCommit.tree.sha, tree: treeEntries }) });
+      }).then(function (tree) {
+        return gh(token, '/git/commits', { method: 'POST', body: JSON.stringify({ message: 'Visual edit via site editor', tree: tree.sha, parents: [baseSha] }) });
+      }).then(function (commit) {
+        return gh(token, '/git/refs/heads/' + BRANCH, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha }) });
+      });
+    });
+  }
+
   document.getElementById('eb-save').addEventListener('click', function () {
     var btn = this;
-    btn.disabled = true;
-    say(IS_LOCAL ? 'Saving and rebuilding…' : 'Saving — the site will rebuild in about two minutes…', true);
     var doSave = function (headers) {
       fetch(ENDPOINT, {
         method: 'POST',
@@ -177,21 +298,39 @@
         .then(function (out) {
           if (!out.ok) throw new Error(out.j.error || 'save failed');
           texts = {}; images = {};
-          if (IS_LOCAL) {
-            say('Saved. Reloading…');
-            setTimeout(function () { location.reload(); }, 900);
-          } else {
-            say('Saved ✓ Your changes go live in about two minutes.');
-            dirtyCount();
-          }
+          say('Saved. Reloading…');
+          setTimeout(function () { location.reload(); }, 900);
         })
         .catch(function (e) { say('Save failed: ' + e.message); btn.disabled = false; });
     };
-    if (IS_LOCAL) return doSave();
-    /* production: Netlify Identity token */
-    var user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-    if (!user) { say('Please log in first.'); window.netlifyIdentity && window.netlifyIdentity.open(); btn.disabled = false; return; }
-    user.jwt().then(function (t) { doSave({ Authorization: 'Bearer ' + t }); });
+    if (IS_LOCAL) {
+      btn.disabled = true;
+      say('Saving and rebuilding…', true);
+      return doSave();
+    }
+    var token = getToken();
+    if (!token) { say('Publishing needs your editing key — ask Kevin for it.'); return; }
+    btn.disabled = true;
+    say('Saving — the site will rebuild in about two minutes…', true);
+    var run = function (tk, retriedAuth) {
+      ghSave(tk).then(function () {
+        texts = {}; images = {};
+        say('Saved ✓ Your changes go live in about two minutes.');
+        dirtyCount();
+      }).catch(function (e) {
+        if (e && e.auth && !retriedAuth) {
+          localStorage.removeItem('eb-gh-token');
+          var fresh = getToken(true);
+          if (fresh) return run(fresh, true);
+          say('Publishing needs your editing key — ask Kevin for it.');
+          btn.disabled = false;
+          return;
+        }
+        say('Save failed: ' + (e && e.message || e));
+        btn.disabled = false;
+      });
+    };
+    run(token, false);
   });
 
   document.getElementById('eb-exit').addEventListener('click', function () {
@@ -200,12 +339,5 @@
     location.href = location.pathname;
   });
 
-  /* production login widget */
-  if (!IS_LOCAL && !window.netlifyIdentity) {
-    var s = document.createElement('script');
-    s.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
-    s.onload = function () { if (!window.netlifyIdentity.currentUser()) window.netlifyIdentity.open(); };
-    document.head.appendChild(s);
-  }
   dirtyCount();
 })();

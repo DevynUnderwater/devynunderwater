@@ -28,10 +28,7 @@ jobs:
       - run: pip install pillow
       - run: python3 prep-ci.py          # resolve CMS uploads → web exports
       - run: node build.js
-      # staging on GitHub Pages lives under /devynunderwater → prefix + noindex.
-      # At launch on Netlify: replace these two steps with a Netlify deploy of site/.
-      - run: python3 preview-build.py /devynunderwater
       - uses: actions/upload-pages-artifact@v3
-        with: { path: site-preview }
+        with: { path: site }
       - id: deployment
         uses: actions/deploy-pages@v4
