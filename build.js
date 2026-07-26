@@ -352,7 +352,13 @@ function shopPage() {
   /* embedded FAA storefront: browse, cart, and checkout happen in-page —
    * buyers never leave the site. memberId comes from site.json (FAA artist id). */
   const storefront = SITE.faa.memberId
-    ? `<iframe src="https://fineartamerica.com/widgetshoppingcart/artwork.html?memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0&height=600" style="display:block;width:100%;height:960px;border:none;overflow:hidden" title="Print shop — browse and buy Devyn's underwater prints" loading="lazy"></iframe>
+    ? `<div class="buy-box" style="padding:0;border-top:3px solid var(--teal)">
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;align-items:baseline;justify-content:space-between;padding:.9rem 1.2rem;border-bottom:1px solid var(--sand)">
+        <span class="kicker" style="margin:0">${t('shop.widget.head', 'Every print, ready to order')}</span>
+        <span style="font-size:.8rem;opacity:.7">${t('shop.widget.sub', 'Secure checkout · fulfilled by Fine Art America')}</span>
+      </div>
+      <iframe src="https://fineartamerica.com/widgetshoppingcart/artwork.html?memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0&height=600" style="display:block;width:100%;height:960px;border:none" title="Print shop — browse and buy Devyn's underwater prints" loading="lazy"></iframe>
+    </div>
     <p class="notice" style="margin-top:.8rem;font-size:.85rem;opacity:.75">${t('shop.fallback.pre', 'Shop not loading?')} <a href="${SITE.faa.artistUrl || 'https://fineartamerica.com'}" target="_blank" rel="noopener">${t('shop.fallback.link', 'Open it on Fine Art America')}</a>.</p>`
     : `<div class="product-grid">
       ${SITE.products.map((p, i) => `<a class="product-card reveal${i % 4 ? ` reveal-d${i % 4}` : ''}" href="/shop/${p.slug}/">

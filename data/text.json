@@ -70,5 +70,7 @@
   "shop.fallback.pre": "Shop not loading?",
   "shop.fallback.link": "Open it on Fine Art America",
   "prod.buy": "Buy this print in the shop",
-  "prod.alt.link": "Or view this piece on Fine Art America"
+  "prod.alt.link": "Or view this piece on Fine Art America",
+  "shop.widget.head": "Every print, ready to order",
+  "shop.widget.sub": "Secure checkout · fulfilled by Fine Art America"
 }
