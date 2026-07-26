@@ -91,14 +91,30 @@
     var im = new Image();
     im.onload = function () {
       URL.revokeObjectURL(url);
-      var s = Math.min(1, MAX_EDGE / Math.max(im.naturalWidth, im.naturalHeight));
+      var w = im.naturalWidth, h = im.naturalHeight;
+      var s = Math.min(1, MAX_EDGE / Math.max(w, h));
+      var tw = Math.round(w * s), th = Math.round(h * s);
+      /* step down by halves before the final resize — one big jump from a
+       * 45 MP original aliases fine detail (scales, coral, rhinophores) */
+      var src = im;
+      while (w / 2 >= tw && h / 2 >= th) {
+        w = Math.round(w / 2); h = Math.round(h / 2);
+        var half = document.createElement('canvas');
+        half.width = w; half.height = h;
+        var hx = half.getContext('2d');
+        hx.imageSmoothingEnabled = true;
+        hx.imageSmoothingQuality = 'high';
+        hx.drawImage(src, 0, 0, w, h);
+        src = half;
+      }
       var c = document.createElement('canvas');
-      c.width = Math.round(im.naturalWidth * s);
-      c.height = Math.round(im.naturalHeight * s);
+      c.width = tw; c.height = th;
       var x = c.getContext('2d');
       x.fillStyle = '#fff';
-      x.fillRect(0, 0, c.width, c.height);
-      x.drawImage(im, 0, 0, c.width, c.height);
+      x.fillRect(0, 0, tw, th);
+      x.imageSmoothingEnabled = true;
+      x.imageSmoothingQuality = 'high';
+      x.drawImage(src, 0, 0, tw, th);
       cb(c.toDataURL('image/jpeg', 0.85));
     };
     im.onerror = function () { URL.revokeObjectURL(url); cb(null); };
