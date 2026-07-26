@@ -1,5 +1,8 @@
 [build]
-  command = "pip install pillow && python3 prep-ci.py && node build.js"
+  # Photo prep (Pillow) only when photo files changed — most CMS saves are
+  # text-only and shouldn't pay for a pip install + image pass. An invalid
+  # CACHED_COMMIT_REF makes git diff fail non-zero → full build (safe).
+  command = "if git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- uploads content static/img 2>/dev/null; then node build.js; else pip install pillow && python3 prep-ci.py && node build.js; fi"
   publish = "site"
 
 [functions]
