@@ -8,9 +8,9 @@
   "heroSub": "I am an underwater macro photographer with a passion for scuba diving & conservation.",
   "email": "",
   "socials": {
-    "instagram": "",
+    "instagram": "https://www.instagram.com/devynunderwater/",
     "facebook": "",
-    "tiktok": ""
+    "tiktok": "https://www.tiktok.com/@devynunderwater"
   },
   "colors": {
     "light": "#F5F6F8",
@@ -65,5 +65,6 @@
     "shop": "s25-17",
     "contact": "s26-03",
     "aboutMedia": "s24-05"
-  }
+  },
+  "web3formsKey": ""
 }

@@ -160,3 +160,11 @@
     }, { passive: true });
   }
 })();
+(function () {
+  'use strict';
+  /* contact form: show the thank-you note after the ?sent=1 redirect */
+  if (/[?&]sent=1/.test(location.search)) {
+    var n = document.getElementById('sent-note');
+    if (n) { n.hidden = false; n.scrollIntoView({ block: 'center' }); }
+  }
+})();

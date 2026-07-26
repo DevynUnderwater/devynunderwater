@@ -526,9 +526,17 @@ function contactPage() {
 </div></div>
 <section class="section">
   <div class="container split" style="align-items:start">
-    <form class="reveal" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="https://devynunderwater.netlify.app/contact/?sent=1">
+    <div id="sent-note" class="notice" hidden style="margin-bottom:1.2rem">${t('contact.sent', 'Thank you — your message is on its way! I’ll get back to you soon.')}</div>
+    ${SITE.web3formsKey
+      ? `<form class="reveal" method="POST" action="https://api.web3forms.com/submit">
+      <input type="hidden" name="access_key" value="${SITE.web3formsKey}">
+      <input type="hidden" name="redirect" value="${DOMAIN}/contact/?sent=1">
+      <input type="hidden" name="subject" value="New message from devynunderwater.com">
+      <input type="hidden" name="from_name" value="Devyn Underwater website">
+      <input type="checkbox" name="botcheck" style="display:none" tabindex="-1" aria-hidden="true">`
+      : `<form class="reveal" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="https://devynunderwater.netlify.app/contact/?sent=1">
       <input type="hidden" name="form-name" value="contact">
-      <p style="position:absolute;left:-5000px" aria-hidden="true"><input name="bot-field" tabindex="-1"></p>
+      <p style="position:absolute;left:-5000px" aria-hidden="true"><input name="bot-field" tabindex="-1"></p>`}
       <div class="form-grid">
         <div><label for="fn">${t('contact.fn', 'First name *')}</label><input id="fn" name="first-name" required autocomplete="given-name"></div>
         <div><label for="ln">${t('contact.ln', 'Last name *')}</label><input id="ln" name="last-name" required autocomplete="family-name"></div>
