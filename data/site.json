@@ -27,24 +27,24 @@
   "collections": [
     {
       "id": "s24",
-      "name": "2023–24 Season",
+      "name": "Abstract",
       "where": "",
       "year": "2023–24",
-      "blurb": "The early logbooks — first seasons chasing the small stuff, from frogfish to feather stars."
+      "blurb": "Close focus abstracts transform the reef’s overlooked details into compositions of color, texture, and movement."
     },
     {
       "id": "s25",
-      "name": "2024–25 Season",
+      "name": "Animal Behavior",
       "where": "",
       "year": "2024–25",
-      "blurb": "A winter of night dives and a summer of macro — nudibranchs, gobies, and anemone cities."
+      "blurb": "Intimate glimpses into the lives of marine animals, including caring for young, hunting, and mating."
     },
     {
       "id": "s26",
-      "name": "2026 Season",
+      "name": "Animal Portraits",
       "where": "",
       "year": "2026",
-      "blurb": "The newest work, fresh from the editing bay — pygmy seahorses, squat lobsters, and friends."
+      "blurb": "Close-up portraits that capture the unique features and personalities of the reef’s residents."
     }
   ],
   "printMedia": [
