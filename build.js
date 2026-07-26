@@ -157,6 +157,7 @@ function layout({ slug, title, description, schema = [], body, extraHead = '' })
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${url}">
+${SITE.prelaunch ? '<meta name="robots" content="noindex, nofollow">' : ''}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${esc(SITE.name)}">
 <meta property="og:title" content="${esc(title)}">
@@ -598,7 +599,9 @@ function seoFiles(slugs) {
 ${slugs.map(s => `  <url><loc>${DOMAIN}${s}</loc><lastmod>2026-07-24</lastmod></url>`).join('\n')}
 </urlset>
 `);
-  write('robots.txt', `User-agent: *
+  write('robots.txt', SITE.prelaunch
+    ? `User-agent: *\nDisallow: /\n`
+    : `User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /manage/
