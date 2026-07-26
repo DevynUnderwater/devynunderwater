@@ -311,7 +311,9 @@ function homePage() {
   <h1>Something beautiful is surfacing</h1>
   <p>Underwater macro photography &amp; fine-art prints.<br>Coming soon.</p>
   <svg class="wave" width="120" height="28" viewBox="0 0 120 28" aria-hidden="true"><path d="M4 18c12-20 26-20 38 0s26 20 38 0 26-20 36 0" stroke="#018DAC" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+  <p id="editor-door" hidden style="margin-top:2.2rem;font-size:.85rem"><a href="/home-preview/" style="color:#33BEDC">You’re the editor — see your site as it stands →</a></p>
 </div>
+<script>try{if(localStorage.getItem('eb-gh-token'))document.getElementById('editor-door').hidden=false}catch(e){}</script>
 </body>
 </html>`);
 }
