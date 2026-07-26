@@ -66,5 +66,9 @@
   "contact.send": "Send",
   "nf.h1": "Lost at sea",
   "nf.lede": "This page drifted off. Try one of these currents:",
-  "about.p3": "That challenge deepened my adoration of the small, easily overlooked details of life below the surface - the intricate textures of obscure macro life, the galaxy found within an animal’s eye, the quiet architecture of coral most divers swim right past without a second look. Underwater macro rewards patience more than luck: hovering still enough, long enough, for a fish to “kiss” its eggs or a frogfish to “yawn”. That’s the part I love most - when the ocean carries on like you’re not there, and every so often you capture a frame of it."
+  "about.p3": "That challenge deepened my adoration of the small, easily overlooked details of life below the surface - the intricate textures of obscure macro life, the galaxy found within an animal’s eye, the quiet architecture of coral most divers swim right past without a second look. Underwater macro rewards patience more than luck: hovering still enough, long enough, for a fish to “kiss” its eggs or a frogfish to “yawn”. That’s the part I love most - when the ocean carries on like you’re not there, and every so often you capture a frame of it.",
+  "shop.fallback.pre": "Shop not loading?",
+  "shop.fallback.link": "Open it on Fine Art America",
+  "prod.buy": "Buy this print in the shop",
+  "prod.alt.link": "Or view this piece on Fine Art America"
 }

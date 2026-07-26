@@ -71,15 +71,6 @@ const socialWord = (key, label) => SITE.socials[key]
   ? `<a href="${SITE.socials[key]}" target="_blank" rel="noopener">${label}</a>`
   : label;
 
-/* FAA deep-link helper: verified ?product= values only */
-const FAA_MEDIA = [
-  { label: 'Fine art paper', param: '' },
-  { label: 'Canvas', param: 'canvas-print' },
-  { label: 'Metal', param: 'metal-print' },
-  { label: 'Acrylic', param: 'acrylic-print' },
-  { label: 'Framed', param: 'framed-print' }
-];
-const faaLink = (p, param) => p.faaUrl ? (param ? `${p.faaUrl}${p.faaUrl.includes('?') ? '&' : '?'}product=${param}` : p.faaUrl) : '';
 
 /* ---------------- schema ---------------- */
 const PERSON_ID = DOMAIN + '/#devyn';
@@ -358,6 +349,18 @@ function photographyPage() {
 
 function shopPage() {
   const crumbs = [['Home', '/'], ['Shop Prints', '/shop/']];
+  /* embedded FAA storefront: browse, cart, and checkout happen in-page —
+   * buyers never leave the site. memberId comes from site.json (FAA artist id). */
+  const storefront = SITE.faa.memberId
+    ? `<iframe src="https://fineartamerica.com/widgetshoppingcart/artwork.html?memberidtype=artistid&memberid=${SITE.faa.memberId}&domainid=0&showheader=0&height=600" style="display:block;width:100%;height:960px;border:none;overflow:hidden" title="Print shop — browse and buy Devyn's underwater prints" loading="lazy"></iframe>
+    <p class="notice" style="margin-top:.8rem;font-size:.85rem;opacity:.75">${t('shop.fallback.pre', 'Shop not loading?')} <a href="${SITE.faa.artistUrl || 'https://fineartamerica.com'}" target="_blank" rel="noopener">${t('shop.fallback.link', 'Open it on Fine Art America')}</a>.</p>`
+    : `<div class="product-grid">
+      ${SITE.products.map((p, i) => `<a class="product-card reveal${i % 4 ? ` reveal-d${i % 4}` : ''}" href="/shop/${p.slug}/">
+        <div class="ph"><img data-edit-img="${p.img}" src="/assets/img/gallery/${p.img}.jpg" alt="${esc(p.title)} — print" loading="lazy" width="480" height="600"></div>
+        <h3><span data-edit="photo:${p.img}:title">${esc(p.title)}</span></h3>
+        <p>${esc(setName(galleryById[p.img].set))} · ${t('shop.card.sub', 'paper, canvas, metal & more')}</p>
+      </a>`).join('')}
+    </div>`;
   const body = `
 <div class="page-hero"><div class="container">
   <div class="kicker">${t('shop.kicker', 'The print shop')}</div>
@@ -366,13 +369,7 @@ function shopPage() {
 </div></div>
 <section class="section">
   <div class="container">
-    <div class="product-grid">
-      ${SITE.products.map((p, i) => `<a class="product-card reveal${i % 4 ? ` reveal-d${i % 4}` : ''}" href="/shop/${p.slug}/">
-        <div class="ph"><img data-edit-img="${p.img}" src="/assets/img/gallery/${p.img}.jpg" alt="${esc(p.title)} — print" loading="lazy" width="480" height="600"></div>
-        <h3><span data-edit="photo:${p.img}:title">${esc(p.title)}</span></h3>
-        <p>${esc(setName(galleryById[p.img].set))} · ${t('shop.card.sub', 'paper, canvas, metal & more')}</p>
-      </a>`).join('')}
-    </div>
+    ${storefront}
     <div class="trust-row" style="margin-top:2rem">
       <span>✓ ${t('shop.trust1', 'Printed & shipped by Fine Art America')}</span>
       <span>✓ ${t('shop.trust2', '30-day money-back guarantee')}</span>
@@ -396,7 +393,8 @@ function productPage(p) {
   const others = SITE.products.filter(x => x.slug !== p.slug).slice(0, 4);
   const hasFaa = !!p.faaUrl;
   const buyButtons = hasFaa
-    ? FAA_MEDIA.map(m => `<a class="btn btn-dark" style="margin:.25rem .4rem .25rem 0" href="${faaLink(p, m.param)}" target="_blank" rel="noopener">${m.label}</a>`).join('')
+    ? `<a class="btn btn-solid" href="/shop/">${t('prod.buy', 'Buy this print in the shop')}</a>
+        <p style="margin:.7rem 0 0;font-size:.85rem;opacity:.75"><a href="${p.faaUrl}" target="_blank" rel="noopener">${t('prod.alt.link', 'Or view this piece on Fine Art America')}</a></p>`
     : `<p class="notice">${t('prod.pending.pre', 'Print options for this piece are being set up —')} <a href="/contact/">${t('prod.pending.link', 'contact me')}</a> ${t('prod.pending.post', 'to order it today, or check back soon.')}</p>`;
   const body = `
 <div class="page-hero dark"><div class="container">

@@ -20,7 +20,8 @@
   },
   "faa": {
     "artistUrl": "https://fineartamerica.com/profiles/devynunderwater",
-    "note": "TODO: Devyn's Fine Art America artist profile URL — fills every product's buy destination. Per-product faaUrl overrides below."
+    "note": "TODO: Devyn's Fine Art America artist profile URL — fills every product's buy destination. Per-product faaUrl overrides below.",
+    "memberId": "1617440"
   },
   "collections": [
     {
