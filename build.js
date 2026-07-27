@@ -7,10 +7,14 @@ const SITE = require('./data/site.json');
 
 /* photos: one JSON file per photo in content/photos/ (id = filename) */
 const PHOTOS_DIR = path.join(__dirname, 'content', 'photos');
-const PHOTOS = fs.readdirSync(PHOTOS_DIR).filter(f => f.endsWith('.json')).map(f => ({
+const ALL_PHOTOS = fs.readdirSync(PHOTOS_DIR).filter(f => f.endsWith('.json')).map(f => ({
   id: f.replace(/\.json$/, ''),
   ...JSON.parse(fs.readFileSync(path.join(PHOTOS_DIR, f)))
 })).sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || a.id.localeCompare(b.id));
+/* standalone images (e.g. the About/bio photo) render where referenced but
+ * stay out of the gallery, collections, and shop */
+const PHOTOS = ALL_PHOTOS.filter(p => !p.standalone);
+const PHOTO_TITLE = Object.fromEntries(ALL_PHOTOS.map(p => [p.id, p.title]));
 
 SITE.gallery = PHOTOS.map(p => ({ id: p.id, title: p.title, set: p.set }));
 SITE.heroSlides = PHOTOS.filter(p => p.heroOrder).sort((a, b) => a.heroOrder - b.heroOrder).map(p => p.id);
@@ -333,7 +337,7 @@ function aboutPage() {
       <p>${t('about.p3', 'That challenge deepened my adoration of the small, easily overlooked details of life below the surface - the intricate textures of obscure macro life, the galaxy found within an animal’s eye, the quiet architecture of coral most divers swim right past without a second look. Underwater macro rewards patience more than luck: hovering still enough, long enough, for a fish to “kiss” its eggs or a frogfish to “yawn”. That’s the part I love most - when the ocean carries on like you’re not there, and every so often you capture a frame of it.')}</p>
       <p>${t('about.p3a', 'Everything on this site was shot by me, on dives I logged. If you want to know the story behind a photo — or the dive site —')} <a href="/contact/">${t('about.p3link', 'ask')}</a>. You can follow along on ${socialWord('instagram', 'Instagram')} and ${socialWord('tiktok', 'TikTok')} to see more of what I create, or visit the <a href="/shop/">prints</a> page if you’d like to bring a piece of the reef home!</p>
     </div>
-    <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.aboutMedia}" src="/assets/img/gallery/${SITE.homeImages.aboutMedia}.jpg" alt="${esc(galleryById[SITE.homeImages.aboutMedia].title)} — underwater macro photo" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.aboutMedia}" src="/assets/img/gallery/${SITE.homeImages.aboutMedia}.jpg" alt="${esc(PHOTO_TITLE[SITE.homeImages.aboutMedia] || 'About Devyn')}" loading="lazy" width="800" height="600"></div>
   </div>
 </section>
 <section class="section section-teal">
@@ -343,7 +347,6 @@ function aboutPage() {
       ${SITE.collections.map((c, i) => `<div class="reveal reveal-d${i + 1}">
         <img data-edit-img="${SITE.gallery.find(g => g.set === c.id).id}" src="/assets/img/thumbs/${SITE.gallery.find(g => g.set === c.id).id}.jpg" alt="${esc(c.name)} underwater photo" loading="lazy" width="480" height="360" style="box-shadow:var(--shadow);margin-bottom:.9rem">
         <h3><span data-edit="site:collections.${i}.name">${esc(c.name)}</span></h3>
-        <p style="font-size:.9rem;opacity:.85">${esc(c.where ? c.where + ' · ' : '')}${c.year}</p>
         <p data-edit="site:collections.${i}.blurb">${esc(c.blurb)}</p>
       </div>`).join('')}
     </div>
@@ -469,7 +472,7 @@ function productPage(p) {
       : `<p class="notice">${t('prod.pending.pre', 'Print options for this piece are being set up —')} <a href="/contact/">${t('prod.pending.link', 'contact me')}</a> ${t('prod.pending.post', 'to order it today, or check back soon.')}</p>`;
   const body = `
 <div class="page-hero dark"><div class="container">
-  <div class="kicker">${esc(setName(g.set))} · ${SITE.collections.find(c => c.id === g.set).year}</div>
+  <div class="kicker">${esc(setName(g.set))}</div>
   <h1 data-edit="photo:${p.img}:title">${esc(p.title)}</h1>
 </div></div>
 <section class="section">

@@ -48,7 +48,7 @@ for f in sorted(os.listdir(PDIR)):
         export(src or gal, th, 480, 78); made += 1
     if p.get('heroOrder') and not os.path.exists(hero) and (src or os.path.exists(gal)):
         export(src or gal, hero, 1920, 80); made += 1
-    if p.get('set') not in valid_sets:
+    if p.get('set') not in valid_sets and not p.get('standalone'):
         print(f'WARN: {pid}: unknown collection "{p.get("set")}"', file=sys.stderr)
 
 for k, v in site.get('homeImages', {}).items():

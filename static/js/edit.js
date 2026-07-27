@@ -96,6 +96,25 @@
     say('Draft restored — keep editing, or Save & publish when you’re ready.');
   }
 
+  /* ---------- edit-mode click shield ----------
+   * The gallery tiles open the lightbox and strip/product images navigate,
+   * which made their captions impossible to edit. While editing, clicks on
+   * editable things edit; lightbox and navigation wait for Exit. */
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#edit-bar') || e.target.closest('#eb-toast') || e.target.closest('.eb-img-btn')) return;
+    var editable = e.target.closest('[data-edit]');
+    if (editable) {
+      e.preventDefault();
+      e.stopPropagation();
+      editable.focus();
+      return;
+    }
+    var tile = e.target.closest('.tile');
+    if (tile) { e.preventDefault(); e.stopPropagation(); return; }
+    var link = e.target.closest('a[href]');
+    if (link && link.querySelector('[data-edit-img]')) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
   /* ---------- text editing ---------- */
   [].slice.call(document.querySelectorAll('[data-edit]')).forEach(function (el) {
     el.setAttribute('contenteditable', 'plaintext-only');
