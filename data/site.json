@@ -61,9 +61,9 @@
     "shopIntro": "Every print is made to order through my print partner, Fine Art America — museum-grade papers, canvas, metal, acrylic, and framing, with worldwide shipping and a 30-day guarantee. You pick the piece here; their secure checkout handles the rest."
   },
   "homeImages": {
-    "history": "s25-28",
-    "shop": "s25-17",
-    "contact": "s26-03",
+    "history": "home-history",
+    "shop": "home-shop",
+    "contact": "home-contact",
     "aboutMedia": "bio"
   },
   "web3formsKey": ""

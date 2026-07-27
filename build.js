@@ -17,8 +17,10 @@ const PHOTOS = ALL_PHOTOS.filter(p => !p.standalone);
 const PHOTO_TITLE = Object.fromEntries(ALL_PHOTOS.map(p => [p.id, p.title]));
 
 SITE.gallery = PHOTOS.map(p => ({ id: p.id, title: p.title, set: p.set }));
-SITE.heroSlides = PHOTOS.filter(p => p.heroOrder).sort((a, b) => a.heroOrder - b.heroOrder).map(p => p.id);
-SITE.featured = PHOTOS.filter(p => p.featuredOrder).sort((a, b) => a.featuredOrder - b.featuredOrder).map(p => p.id);
+/* hero + featured come from standalone page-image slots (hero-NN / feat-N),
+ * so the home carousels never touch portfolio photos */
+SITE.heroSlides = ALL_PHOTOS.filter(p => p.standalone && p.heroOrder).sort((a, b) => a.heroOrder - b.heroOrder).map(p => p.id);
+SITE.featured = ALL_PHOTOS.filter(p => p.standalone && p.featuredOrder).sort((a, b) => a.featuredOrder - b.featuredOrder).map(p => p.id);
 SITE.products = PHOTOS.filter(p => p.forSale).sort((a, b) => (a.saleOrder ?? 999) - (b.saleOrder ?? 999)).map(p => ({
   slug: p.slug || p.id,
   img: p.id,
@@ -207,10 +209,7 @@ const tile = (g, i) => `<button class="tile reveal${i % 3 === 1 ? ' reveal-d1' :
 function filmStrip(ids, cls) {
   return `<div class="strip-wrap ${cls || ''}">
     <div class="strip" tabindex="0" aria-label="Photo strip — scroll horizontally">
-      ${ids.map(id => {
-        const g = galleryById[id];
-        return `<a href="/photography/#${id}"><figure style="margin:0"><img data-edit-img="${id}" src="/assets/img/gallery/${id}.jpg" alt="${esc(g.title)}" loading="lazy"><figcaption data-edit="photo:${id}:title">${esc(g.title)}</figcaption></figure></a>`;
-      }).join('')}
+      ${ids.map(id => `<a href="/photography/"><figure style="margin:0"><img data-edit-img="${id}" src="/assets/img/gallery/${id}.jpg" alt="${esc(PHOTO_TITLE[id] || '')}" loading="lazy"><figcaption data-edit="photo:${id}:title">${esc(PHOTO_TITLE[id] || '')}</figcaption></figure></a>`).join('')}
     </div>
     <div class="strip-nav">
       <button class="strip-prev" type="button" aria-label="Scroll photos left">‹</button>
@@ -224,7 +223,7 @@ function homePage() {
   const body = `
 <section class="hero">
   <div class="hero-media">
-    ${SITE.heroSlides.map((id, i) => `<div class="slide${i === 0 ? ' active' : ''}"><img data-edit-img="${id}" src="/assets/img/hero/${id}.jpg" alt="${esc(galleryById[id].title)} — underwater macro photograph" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}></div>`).join('')}
+    ${SITE.heroSlides.map((id, i) => `<div class="slide${i === 0 ? ' active' : ''}"><img data-edit-img="${id}" src="/assets/img/hero/${id}.jpg" alt="${esc(PHOTO_TITLE[id] || 'Underwater macro photograph')}" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}></div>`).join('')}
   </div>
   <div class="container">
     <h1 class="reveal in" data-edit="site:heroLine">${esc(SITE.heroLine)}</h1>
@@ -245,7 +244,7 @@ function homePage() {
       <p data-edit="site:copy.aboutTeaser">${esc(SITE.copy.aboutTeaser)}</p>
       <a class="btn btn-light" href="/about/">${t('home.history.btn', 'More about me')}</a>
     </div>
-    <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.history}" src="/assets/img/gallery/${SITE.homeImages.history}.jpg" alt="${esc(galleryById[SITE.homeImages.history].title)} — underwater macro photo" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.history}" src="/assets/img/gallery/${SITE.homeImages.history}.jpg" alt="${esc(PHOTO_TITLE[SITE.homeImages.history] || 'Underwater macro photo')}" loading="lazy" width="800" height="600"></div>
   </div>
 </section>
 
@@ -259,7 +258,7 @@ function homePage() {
 
 <section class="section section-ink">
   <div class="container split">
-    <div class="media reveal"><img data-edit-img="${SITE.homeImages.shop}" src="/assets/img/gallery/${SITE.homeImages.shop}.jpg" alt="${esc(galleryById[SITE.homeImages.shop].title)} — available as a print" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal"><img data-edit-img="${SITE.homeImages.shop}" src="/assets/img/gallery/${SITE.homeImages.shop}.jpg" alt="${esc(PHOTO_TITLE[SITE.homeImages.shop] || 'Underwater print')}" loading="lazy" width="800" height="600"></div>
     <div class="reveal reveal-d1">
       <div class="kicker">${t('home.prints.kicker', 'Prints')}</div>
       <h2>${t('home.prints.h2', 'Take the ocean home')}</h2>
@@ -277,7 +276,7 @@ function homePage() {
       <p>${t('home.contact.p', "Questions about a print, a photo, or a dive site? I'd love to hear from you.")}</p>
       <a class="btn btn-dark" href="/contact/">${t('home.contact.btn', 'Get in touch')}</a>
     </div>
-    <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.contact}" src="/assets/img/gallery/${SITE.homeImages.contact}.jpg" alt="${esc(galleryById[SITE.homeImages.contact].title)}" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.contact}" src="/assets/img/gallery/${SITE.homeImages.contact}.jpg" alt="${esc(PHOTO_TITLE[SITE.homeImages.contact] || '')}" loading="lazy" width="800" height="600"></div>
   </div>
 </section>`;
   /* prelaunch: the public root is a construction page; the real homepage
@@ -345,7 +344,7 @@ function aboutPage() {
     <div class="reveal"><div class="kicker">${t('about.log.kicker', 'Dive log')}</div><h2>${t('about.log.h2', 'Where the work comes from')}</h2></div>
     <div class="split" style="grid-template-columns:repeat(3,1fr);align-items:start" >
       ${SITE.collections.map((c, i) => `<div class="reveal reveal-d${i + 1}">
-        <img data-edit-img="${SITE.gallery.find(g => g.set === c.id).id}" src="/assets/img/thumbs/${SITE.gallery.find(g => g.set === c.id).id}.jpg" alt="${esc(c.name)} underwater photo" loading="lazy" width="480" height="360" style="box-shadow:var(--shadow);margin-bottom:.9rem">
+        <img data-edit-img="style-${i + 1}" src="/assets/img/thumbs/style-${i + 1}.jpg" alt="${esc(c.name)} underwater photo" loading="lazy" width="480" height="360" style="box-shadow:var(--shadow);margin-bottom:.9rem">
         <h3><span data-edit="site:collections.${i}.name">${esc(c.name)}</span></h3>
         <p data-edit="site:collections.${i}.blurb">${esc(c.blurb)}</p>
       </div>`).join('')}
@@ -550,7 +549,7 @@ function contactPage() {
       </div>
       <button class="btn btn-solid" type="submit" style="margin-top:1rem">${t('contact.send', 'Send')}</button>
     </form>
-    <div class="media reveal reveal-d1"><img data-edit-img="${SITE.homeImages.contact}" src="/assets/img/gallery/${SITE.homeImages.contact}.jpg" alt="${esc(galleryById[SITE.homeImages.contact].title)}" loading="lazy" width="800" height="600"></div>
+    <div class="media reveal reveal-d1"><img data-edit-img="page-contact" src="/assets/img/gallery/page-contact.jpg" alt="${esc(PHOTO_TITLE['page-contact'] || '')}" loading="lazy" width="800" height="600"></div>
   </div>
 </section>`;
   write('contact/index.html', layout({
