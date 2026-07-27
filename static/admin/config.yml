@@ -44,11 +44,6 @@ collections:
           - { label: "2026 Season", value: s26 }
         hint: "Which gallery filter this photo appears under"
       - { label: "Image (upload your JPG — new photos only)", name: image, widget: image, required: false, hint: "Existing photos already have their image on the site; leave empty unless replacing." }
-      - { label: "Sell as a print?", name: forSale, widget: boolean, required: false, default: false }
-      - { label: "Print story (shown on its shop page)", name: story, widget: text, required: false, hint: "Only used when selling" }
-      - { label: "Fine Art America artwork URL", name: faaUrl, widget: string, required: false, default: "", hint: "Paste from your FAA account — buy buttons appear automatically" }
-      - { label: "Shop position", name: saleOrder, widget: number, required: false, value_type: int, min: 1 }
-      - { label: "Web address (auto — leave alone)", name: slug, widget: string, required: false }
 
   # ─────────── SITE SETTINGS ───────────
   - name: settings

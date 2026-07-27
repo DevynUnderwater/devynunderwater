@@ -21,7 +21,9 @@ SITE.gallery = PHOTOS.map(p => ({ id: p.id, title: p.title, set: p.set }));
  * so the home carousels never touch portfolio photos */
 SITE.heroSlides = ALL_PHOTOS.filter(p => p.standalone && p.heroOrder).sort((a, b) => a.heroOrder - b.heroOrder).map(p => p.id);
 SITE.featured = ALL_PHOTOS.filter(p => p.standalone && p.featuredOrder).sort((a, b) => a.featuredOrder - b.featuredOrder).map(p => p.id);
-SITE.products = PHOTOS.filter(p => p.forSale).sort((a, b) => (a.saleOrder ?? 999) - (b.saleOrder ?? 999)).map(p => ({
+/* the shop mirrors her FAA store exactly: shop-* items scraped from FAA
+ * (titles, descriptions, images, ids) — portfolio photos carry no shop data */
+SITE.products = ALL_PHOTOS.filter(p => p.shop).sort((a, b) => (a.saleOrder ?? 999) - (b.saleOrder ?? 999)).map(p => ({
   slug: p.slug || p.id,
   img: p.id,
   title: p.title,
@@ -402,7 +404,7 @@ function shopPage() {
       ${SITE.products.map((p, i) => `<a class="product-card reveal${i % 4 ? ` reveal-d${i % 4}` : ''}" href="/shop/${p.slug}/">
         <div class="ph"><img data-edit-img="${p.img}" src="/assets/img/gallery/${p.img}.jpg" alt="${esc(p.title)} — print" loading="lazy" width="480" height="600"></div>
         <h3><span data-edit="photo:${p.img}:title">${esc(p.title)}</span></h3>
-        <p>${esc(setName(galleryById[p.img].set))} · ${t('shop.card.sub', 'paper, canvas, metal & more')}</p>
+        <p>${t('shop.card.sub', 'paper, canvas, metal & more')}</p>
       </a>`).join('')}
     </div>`;
   /* the full FAA store keeps the persistent multi-item cart; the grid above
@@ -447,7 +449,6 @@ function shopPage() {
 }
 
 function productPage(p) {
-  const g = galleryById[p.img];
   const crumbs = [['Home', '/'], ['Shop Prints', '/shop/'], [p.title, `/shop/${p.slug}/`]];
   const others = SITE.products.filter(x => x.slug !== p.slug).slice(0, 4);
   const hasFaa = !!p.faaUrl;
@@ -471,7 +472,7 @@ function productPage(p) {
       : `<p class="notice">${t('prod.pending.pre', 'Print options for this piece are being set up —')} <a href="/contact/">${t('prod.pending.link', 'contact me')}</a> ${t('prod.pending.post', 'to order it today, or check back soon.')}</p>`;
   const body = `
 <div class="page-hero dark"><div class="container">
-  <div class="kicker">${esc(setName(g.set))}</div>
+  <div class="kicker">${t('prod.kicker', 'Original photograph')}</div>
   <h1 data-edit="photo:${p.img}:title">${esc(p.title)}</h1>
 </div></div>
 <section class="section">
