@@ -68,6 +68,32 @@ function applyImages(images) {
   }
 }
 
+/* rearrange (order.json manifest) + remove (delete photo + files) */
+function applyOps(ops) {
+  if (!ops) return;
+  const orderFile = path.join(ROOT, 'data', 'order.json');
+  const order = fs.existsSync(orderFile) ? JSON.parse(fs.readFileSync(orderFile)) : {};
+  for (const [kind, ids] of Object.entries(ops.order || {})) {
+    if (Array.isArray(ids)) order[kind] = ids.filter(id => /^[a-z0-9-]+$/.test(id));
+  }
+  for (const id of ops.remove || []) {
+    if (!/^[a-z0-9-]+$/.test(id)) continue;
+    for (const k of Object.keys(order)) {
+      if (Array.isArray(order[k])) order[k] = order[k].filter(x => x !== id);
+    }
+    const pf = path.join(ROOT, 'content', 'photos', `${id}.json`);
+    if (fs.existsSync(pf)) fs.unlinkSync(pf);
+    for (const p of [
+      path.join(ROOT, 'static', 'img', 'gallery', `${id}.jpg`),
+      path.join(ROOT, 'static', 'img', 'thumbs', `${id}.jpg`),
+      path.join(ROOT, 'static', 'img', 'hero', `${id}.jpg`),
+      path.join(ROOT, 'uploads', 'gallery', `${id}.jpg`)
+    ]) { if (fs.existsSync(p)) fs.unlinkSync(p); }
+  }
+  fs.mkdirSync(path.dirname(orderFile), { recursive: true });
+  fs.writeFileSync(orderFile, JSON.stringify(order, null, 2));
+}
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -81,13 +107,16 @@ http.createServer((req, res) => {
   req.on('data', c => { body += c; if (body.length > 60 * 1024 * 1024) req.destroy(); });
   req.on('end', () => {
     try {
-      const { texts = {}, images = {} } = JSON.parse(body);
+      const { texts = {}, images = {}, ops = null } = JSON.parse(body);
       applyTexts(texts);
       applyImages(images);
+      applyOps(ops);
       execSync('python3 prep-ci.py && node build.js', { cwd: ROOT, stdio: 'inherit' });
       res.writeHead(200, { ...CORS, 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true }));
-      console.log(`applied ${Object.keys(texts).length} text + ${Object.keys(images).length} image edits`);
+      const nOrder = ops && ops.order ? Object.keys(ops.order).length : 0;
+      const nRem = ops && ops.remove ? ops.remove.length : 0;
+      console.log(`applied ${Object.keys(texts).length} text + ${Object.keys(images).length} image + ${nOrder} reorder + ${nRem} remove`);
     } catch (e) {
       console.error(e);
       res.writeHead(500, { ...CORS, 'Content-Type': 'application/json' });

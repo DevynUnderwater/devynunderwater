@@ -16,11 +16,27 @@ const ALL_PHOTOS = fs.readdirSync(PHOTOS_DIR).filter(f => f.endsWith('.json')).m
 const PHOTOS = ALL_PHOTOS.filter(p => !p.standalone);
 const PHOTO_TITLE = Object.fromEntries(ALL_PHOTOS.map(p => [p.id, p.title]));
 
-SITE.gallery = PHOTOS.map(p => ({ id: p.id, title: p.title, set: p.set }));
+/* Display order for the gallery, hero carousel and featured strip lives in a
+ * single manifest (data/order.json) that the visual editor rewrites when Devyn
+ * rearranges. An id in the manifest sorts by its position there; anything not
+ * listed falls back to its per-photo order field, then id. One file to write
+ * on reorder, and it de-interleaves the gallery into clean collection groups. */
+const ORDER_FILE = path.join(__dirname, 'data', 'order.json');
+const ORDER = fs.existsSync(ORDER_FILE) ? JSON.parse(fs.readFileSync(ORDER_FILE)) : {};
+const orderedBy = (list, manifestKey, fallbackField) => {
+  const manifest = ORDER[manifestKey] || [];
+  const pos = id => { const i = manifest.indexOf(id); return i < 0 ? Infinity : i; };
+  return list.slice().sort((a, b) =>
+    pos(a.id) - pos(b.id) ||
+    ((a[fallbackField] ?? 999) - (b[fallbackField] ?? 999)) ||
+    a.id.localeCompare(b.id));
+};
+
+SITE.gallery = orderedBy(PHOTOS, 'gallery', 'order').map(p => ({ id: p.id, title: p.title, set: p.set }));
 /* hero + featured come from standalone page-image slots (hero-NN / feat-N),
  * so the home carousels never touch portfolio photos */
-SITE.heroSlides = ALL_PHOTOS.filter(p => p.standalone && p.heroOrder).sort((a, b) => a.heroOrder - b.heroOrder).map(p => p.id);
-SITE.featured = ALL_PHOTOS.filter(p => p.standalone && p.featuredOrder).sort((a, b) => a.featuredOrder - b.featuredOrder).map(p => p.id);
+SITE.heroSlides = orderedBy(ALL_PHOTOS.filter(p => p.standalone && p.heroOrder), 'hero', 'heroOrder').map(p => p.id);
+SITE.featured = orderedBy(ALL_PHOTOS.filter(p => p.standalone && p.featuredOrder), 'featured', 'featuredOrder').map(p => p.id);
 /* the shop mirrors her FAA store exactly: shop-* items scraped from FAA
  * (titles, descriptions, images, ids) — portfolio photos carry no shop data */
 SITE.products = ALL_PHOTOS.filter(p => p.shop).sort((a, b) => (a.saleOrder ?? 999) - (b.saleOrder ?? 999)).map(p => ({

@@ -13,13 +13,26 @@
 
   var texts = {};   // "site:copy.aboutTeaser" -> new value
   var images = {};  // photoId -> dataURL
+  var removes = {}; // photoId -> kind (gallery|hero|featured) marked for removal
+  var arranged = {};// kind -> true once that container's order was changed
   var originals = {};
+
+  /* containers whose children can be rearranged / removed in edit mode */
+  var ARRANGE = [
+    { kind: 'gallery', container: '.gallery', item: '.tile' },
+    { kind: 'hero', container: '.hero-media', item: '.slide' },
+    { kind: 'featured', container: '.strip', item: 'a' }
+  ];
+  var idOf = function (el) {
+    var im = el && el.querySelector('[data-edit-img]');
+    return im && im.getAttribute('data-edit-img');
+  };
 
   /* ---------- toolbar ---------- */
   var bar = document.createElement('div');
   bar.id = 'edit-bar';
   bar.innerHTML =
-    '<span class="eb-label">✏️ Edit mode — click any highlighted text to rewrite it, click a photo to replace it.</span>' +
+    '<span class="eb-label">✏️ Edit mode — click text to rewrite, click a photo to replace. On photos: ⠿ drag or ◀▶ to reorder, ✕ to remove.</span>' +
     '<span class="eb-actions">' +
     '<span id="eb-count">No changes yet</span>' +
     '<a id="eb-admin" href="/admin/" style="font:800 13px Avenir,Mulish,sans-serif;letter-spacing:.05em;text-transform:uppercase;padding:.5rem 1.1rem;border:1.5px solid #F5F6F8;color:#F5F6F8;text-decoration:none">＋ Add photos</a>' +
@@ -43,6 +56,16 @@
     '.eb-img-btn{position:absolute;inset:auto auto 10px 10px;z-index:5;background:#1C2567;color:#F5F6F8;font:800 12px Avenir,Mulish,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:.45rem .9rem;border:1.5px solid #F5F6F8;cursor:pointer}' +
     '.eb-img-btn:hover{background:#018DAC;border-color:#018DAC}' +
     '.eb-img-dirty{box-shadow:0 0 0 3px #E8A33D}' +
+    '.eb-arrangeable{position:relative}' +
+    '.eb-arrange{position:absolute;inset:6px 6px auto auto;z-index:6;display:flex;gap:3px}' +
+    '.eb-arrange button{width:30px;height:30px;padding:0;font:700 15px/1 Avenir,Mulish,sans-serif;background:#1C2567;color:#F5F6F8;border:1.5px solid #F5F6F8;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center}' +
+    '.eb-arrange button:hover{background:#018DAC;border-color:#018DAC}' +
+    '.eb-arrange .eb-grip{cursor:grab;touch-action:none}' +
+    '.eb-arrange .eb-rm{background:#8a1f1f}' +
+    '.eb-dragging{opacity:.55;outline:3px solid #018DAC;pointer-events:none}' +
+    '.eb-removed{opacity:.32;filter:grayscale(1)}' +
+    '.eb-removed .eb-rm{background:#018DAC;border-color:#018DAC}' +
+    '.eb-removed-tag{position:absolute;inset:auto 0 0 0;z-index:6;background:#8a1f1f;color:#fff;font:800 11px Avenir,Mulish,sans-serif;letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:.3rem}' +
     '#eb-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1001;background:#1C2567;color:#fff;padding:.8rem 1.4rem;font:500 14px Avenir,Mulish,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.35);display:none}';
   document.head.appendChild(style);
   document.body.appendChild(bar);
@@ -56,15 +79,33 @@
     if (!sticky) setTimeout(function () { toast.style.display = 'none'; }, 3200);
   }
   function dirtyCount() {
-    var n = Object.keys(texts).length + Object.keys(images).length;
+    var n = Object.keys(texts).length + Object.keys(images).length +
+            Object.keys(removes).length + Object.keys(arranged).length;
     document.getElementById('eb-count').textContent = n ? n + ' unsaved change' + (n > 1 ? 's' : '') : 'No changes yet';
     document.getElementById('eb-save').disabled = !n;
     document.getElementById('eb-draft').disabled = !n;
   }
 
+  /* current arrange/remove ops from the DOM on this page. order arrays hold
+   * the live child sequence (removed items excluded); only changed containers
+   * are included so an untouched page writes nothing. */
+  function collectOps() {
+    var ops = { order: {}, remove: Object.keys(removes) };
+    ARRANGE.forEach(function (cfg) {
+      var container = document.querySelector(cfg.container);
+      if (!container || !arranged[cfg.kind]) return;
+      ops.order[cfg.kind] = [].slice.call(container.querySelectorAll(cfg.item))
+        .map(idOf).filter(function (id) { return id && !removes[id]; });
+    });
+    return ops;
+  }
+  function hasOps() {
+    return Object.keys(removes).length || Object.keys(arranged).length;
+  }
+
   /* ---------- drafts: keep work on this device without publishing ---------- */
   var DRAFT_KEY = 'eb-draft';
-  function draftSnapshot() { return JSON.stringify({ texts: texts, images: images }); }
+  function draftSnapshot() { return JSON.stringify({ texts: texts, images: images, removes: removes, order: collectOps().order }); }
   function saveDraft() {
     try {
       localStorage.setItem(DRAFT_KEY, draftSnapshot());
@@ -92,6 +133,34 @@
         im.classList.add('eb-img-dirty');
       });
     });
+    /* restore rearrange order (re-append items in saved sequence per container) */
+    var order = d.order || {};
+    Object.keys(order).forEach(function (kind) {
+      var cfg = ARRANGE.filter(function (k) { return k.kind === kind; })[0];
+      var container = cfg && document.querySelector(cfg.container);
+      if (!container) return;
+      order[kind].forEach(function (id) {
+        var im = container.querySelector('[data-edit-img="' + id + '"]');
+        var item = im && im.closest(cfg.item);
+        if (item) container.appendChild(item);
+      });
+      arranged[kind] = true;
+    });
+    /* restore removals (dim the tile, flip its button to undo) */
+    removes = d.removes || {};
+    Object.keys(removes).forEach(function (id) {
+      var cfg = ARRANGE.filter(function (k) { return k.kind === removes[id]; })[0];
+      var im = document.querySelector('[data-edit-img="' + id + '"]');
+      var item = cfg && im && im.closest(cfg.item);
+      if (!item || item.querySelector('.eb-removed-tag')) return;
+      item.classList.add('eb-removed');
+      var t = document.createElement('div');
+      t.className = 'eb-removed-tag';
+      t.textContent = 'Removed · tap ✕ to undo';
+      item.appendChild(t);
+      var rm = item.querySelector('.eb-rm');
+      if (rm) rm.textContent = '↺';
+    });
     dirtyCount();
     say('Draft restored — keep editing, or Save & publish when you’re ready.');
   }
@@ -101,7 +170,8 @@
    * which made their captions impossible to edit. While editing, clicks on
    * editable things edit; lightbox and navigation wait for Exit. */
   document.addEventListener('click', function (e) {
-    if (e.target.closest('#edit-bar') || e.target.closest('#eb-toast') || e.target.closest('.eb-img-btn')) return;
+    if (e.target.closest('#edit-bar') || e.target.closest('#eb-toast') ||
+        e.target.closest('.eb-img-btn') || e.target.closest('.eb-arrange')) return;
     var editable = e.target.closest('[data-edit]');
     if (editable) {
       e.preventDefault();
@@ -216,6 +286,92 @@
     picker.value = '';
   });
 
+  /* ---------- rearrange + remove ---------- */
+  function moveItem(container, itemSel, item, dir) {
+    var items = [].slice.call(container.querySelectorAll(itemSel));
+    var i = items.indexOf(item);
+    if (dir < 0 && i > 0) container.insertBefore(item, items[i - 1]);
+    else if (dir > 0 && i < items.length - 1) container.insertBefore(items[i + 1], item);
+    else return false;
+    return true;
+  }
+  function enhanceArrange() {
+    ARRANGE.forEach(function (cfg) {
+      var container = document.querySelector(cfg.container);
+      if (!container) return;
+      [].slice.call(container.querySelectorAll(cfg.item)).forEach(function (item) {
+        var id = idOf(item);
+        if (!id) return;
+        item.classList.add('eb-arrangeable');
+        var bar = document.createElement('div');
+        bar.className = 'eb-arrange';
+        bar.innerHTML =
+          '<button type="button" class="eb-grip" title="Drag to move" aria-label="Drag to move">⠿</button>' +
+          '<button type="button" class="eb-mv" data-dir="-1" title="Move earlier" aria-label="Move earlier">◀</button>' +
+          '<button type="button" class="eb-mv" data-dir="1" title="Move later" aria-label="Move later">▶</button>' +
+          '<button type="button" class="eb-rm" title="Remove" aria-label="Remove">✕</button>';
+        item.appendChild(bar);
+
+        bar.addEventListener('click', function (e) {
+          var b = e.target.closest('button');
+          if (!b) return;
+          e.preventDefault(); e.stopPropagation();
+          if (b.classList.contains('eb-mv')) {
+            if (moveItem(container, cfg.item, item, +b.getAttribute('data-dir'))) {
+              arranged[cfg.kind] = true; dirtyCount();
+            }
+          } else if (b.classList.contains('eb-rm')) {
+            if (removes[id]) {                       // undo
+              delete removes[id];
+              item.classList.remove('eb-removed');
+              var tag = item.querySelector('.eb-removed-tag'); if (tag) tag.remove();
+              b.textContent = '✕';
+            } else {
+              if (!confirm('Remove this photo from the site? Nothing is deleted until you publish — you can undo before then.')) return;
+              removes[id] = cfg.kind;
+              item.classList.add('eb-removed');
+              var t = document.createElement('div');
+              t.className = 'eb-removed-tag';
+              t.textContent = 'Removed · tap ✕ to undo';
+              item.appendChild(t);
+              b.textContent = '↺';
+            }
+            dirtyCount();
+          }
+        });
+
+        /* pointer-drag from the grip (works mouse + touch) */
+        var grip = bar.querySelector('.eb-grip');
+        var dragging = false;
+        grip.addEventListener('pointerdown', function (e) {
+          e.preventDefault(); e.stopPropagation();
+          dragging = true;
+          item.classList.add('eb-dragging');
+          try { grip.setPointerCapture(e.pointerId); } catch (er) {}
+        });
+        grip.addEventListener('pointermove', function (e) {
+          if (!dragging) return;
+          var over = document.elementFromPoint(e.clientX, e.clientY);
+          var overItem = over && over.closest(cfg.item);
+          if (!overItem || overItem === item || overItem.parentNode !== container) return;
+          var r = overItem.getBoundingClientRect();
+          var after = (e.clientY - r.top) > r.height / 2;
+          container.insertBefore(item, after ? overItem.nextSibling : overItem);
+          arranged[cfg.kind] = true;
+        });
+        var endDrag = function () {
+          if (!dragging) return;
+          dragging = false;
+          item.classList.remove('eb-dragging');
+          dirtyCount();
+        };
+        grip.addEventListener('pointerup', endDrag);
+        grip.addEventListener('pointercancel', endDrag);
+      });
+    });
+  }
+  enhanceArrange();
+
   /* ---------- save: straight-to-GitHub commit ---------- */
   function getToken(forceAsk) {
     var t = localStorage.getItem('eb-gh-token');
@@ -323,6 +479,34 @@
       });
       return imgWork;
     }).then(function () {
+      /* arrange + remove: merge data/order.json, delete removed photos' files */
+      if (!hasOps()) return;
+      var ops = collectOps();
+      var delIfExists = function (p) {
+        return fileExists(p).then(function (yes) {
+          if (yes) treeEntries.push({ path: p, mode: '100644', type: 'blob', sha: null });
+        });
+      };
+      return readFile('data/order.json').catch(function () { return {}; }).then(function (order) {
+        Object.keys(ops.order).forEach(function (k) { order[k] = ops.order[k]; });
+        ops.remove.forEach(function (id) {
+          Object.keys(order).forEach(function (k) {
+            if (Array.isArray(order[k])) order[k] = order[k].filter(function (x) { return x !== id; });
+          });
+        });
+        putJson('data/order.json', order);
+        return Promise.all(ops.remove.map(function (id) {
+          if (!idOk(id)) return null;
+          treeEntries.push({ path: 'content/photos/' + id + '.json', mode: '100644', type: 'blob', sha: null });
+          return Promise.all([
+            delIfExists('static/img/gallery/' + id + '.jpg'),
+            delIfExists('static/img/thumbs/' + id + '.jpg'),
+            delIfExists('static/img/hero/' + id + '.jpg'),
+            delIfExists('uploads/gallery/' + id + '.jpg')
+          ]);
+        }));
+      });
+    }).then(function () {
       if (site) putJson('data/site.json', site);
       if (textMap) putJson('data/text.json', textMap);
       Object.keys(photoCache).forEach(function (id) {
@@ -348,11 +532,11 @@
       fetch(ENDPOINT, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, headers || {}),
-        body: JSON.stringify({ texts: texts, images: images })
+        body: JSON.stringify({ texts: texts, images: images, ops: collectOps() })
       }).then(function (res) { return res.json().catch(function () { return {}; }).then(function (j) { return { ok: res.ok, j: j }; }); })
         .then(function (out) {
           if (!out.ok) throw new Error(out.j.error || 'save failed');
-          texts = {}; images = {};
+          texts = {}; images = {}; removes = {}; arranged = {};
           clearDraft();
           say('Saved. Reloading…');
           setTimeout(function () { location.reload(); }, 900);
@@ -370,7 +554,7 @@
     say('Saving — the site will rebuild in about two minutes…', true);
     var run = function (tk, retriedAuth) {
       ghSave(tk).then(function () {
-        texts = {}; images = {};
+        texts = {}; images = {}; removes = {}; arranged = {};
         clearDraft();
         say('Saved ✓ Your changes go live in about two minutes.');
         dirtyCount();
@@ -393,7 +577,8 @@
   document.getElementById('eb-draft').addEventListener('click', saveDraft);
 
   document.getElementById('eb-exit').addEventListener('click', function () {
-    var dirty = Object.keys(texts).length + Object.keys(images).length;
+    var dirty = Object.keys(texts).length + Object.keys(images).length +
+                Object.keys(removes).length + Object.keys(arranged).length;
     var stashed;
     try { stashed = localStorage.getItem(DRAFT_KEY); } catch (e) {}
     if (dirty && stashed !== draftSnapshot() &&
