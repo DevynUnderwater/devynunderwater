@@ -82,8 +82,15 @@
     var next = wrap.querySelector('.strip-next');
     if (!strip) return;
     var step = function () { return Math.min(strip.clientWidth * 0.8, 600); };
-    if (prev) prev.addEventListener('click', function () { strip.scrollBy({ left: -step(), behavior: reduced ? 'auto' : 'smooth' }); });
-    if (next) next.addEventListener('click', function () { strip.scrollBy({ left: step(), behavior: reduced ? 'auto' : 'smooth' }); });
+    var glide = function (left) { strip.scrollTo({ left: left, behavior: reduced ? 'auto' : 'smooth' }); };
+    /* loop: next past the end wraps to the start, prev before the start wraps to the end */
+    if (next) next.addEventListener('click', function () {
+      var max = strip.scrollWidth - strip.clientWidth;
+      glide(strip.scrollLeft >= max - 4 ? 0 : strip.scrollLeft + step());
+    });
+    if (prev) prev.addEventListener('click', function () {
+      glide(strip.scrollLeft <= 4 ? strip.scrollWidth : strip.scrollLeft - step());
+    });
   });
 
   /* gallery filters */
