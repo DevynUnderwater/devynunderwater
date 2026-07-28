@@ -62,7 +62,9 @@
     '.eb-arrange button:hover{background:#018DAC;border-color:#018DAC}' +
     '.eb-arrange .eb-grip{cursor:grab;touch-action:none}' +
     '.eb-arrange .eb-rm{background:#8a1f1f}' +
-    '.eb-dragging{opacity:.55;outline:3px solid #018DAC;pointer-events:none}' +
+    '.eb-arrangeable img{cursor:grab;-webkit-user-drag:none;user-select:none}' +
+    '.eb-dragging,.eb-dragging img,.eb-arrange .eb-grip:active{cursor:grabbing}' +
+    '.eb-dragging{opacity:.55;outline:3px solid #018DAC}' +
     '.eb-removed{opacity:.32;filter:grayscale(1)}' +
     '.eb-removed .eb-rm{background:#018DAC;border-color:#018DAC}' +
     '.eb-removed-tag{position:absolute;inset:auto 0 0 0;z-index:6;background:#8a1f1f;color:#fff;font:800 11px Avenir,Mulish,sans-serif;letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:.3rem}' +
@@ -303,6 +305,8 @@
         var id = idOf(item);
         if (!id) return;
         item.classList.add('eb-arrangeable');
+        /* stop the browser's native image drag-and-drop from stealing the gesture */
+        [].slice.call(item.querySelectorAll('img')).forEach(function (im) { im.draggable = false; });
         var bar = document.createElement('div');
         bar.className = 'eb-arrange';
         bar.innerHTML =
@@ -340,33 +344,50 @@
           }
         });
 
-        /* pointer-drag from the grip (works mouse + touch) */
-        var grip = bar.querySelector('.eb-grip');
-        var dragging = false;
-        grip.addEventListener('pointerdown', function (e) {
-          e.preventDefault(); e.stopPropagation();
-          dragging = true;
-          item.classList.add('eb-dragging');
-          try { grip.setPointerCapture(e.pointerId); } catch (er) {}
+        /* drag to reorder — the WHOLE photo is draggable (grip is just an
+         * affordance). Mouse + touch via pointer events, with a small movement
+         * threshold so a tap still edits captions / opens nothing. */
+        item.addEventListener('pointerdown', function (e) {
+          if (e.button && e.button !== 0) return;               // left / primary only
+          if (e.target.closest('.eb-mv') || e.target.closest('.eb-rm') ||
+              e.target.closest('[data-edit]')) return;          // buttons + captions do their own thing
+          /* on touch, only the grip drags — so a finger-swipe over a photo
+           * still scrolls the gallery instead of grabbing it */
+          if (e.pointerType === 'touch' && !e.target.closest('.eb-grip')) return;
+          e.preventDefault();   // suppress native image drag + text selection
+          var startX = e.clientX, startY = e.clientY, dragging = false;
+          /* listen on DOCUMENT, not the item: the item moves in the DOM
+           * mid-drag, so item-level pointermove/up get dropped (the reorder
+           * happened but pointerup never fired → dirty state never updated). */
+          var onMove = function (ev) {
+            if (!dragging) {
+              if (Math.abs(ev.clientX - startX) + Math.abs(ev.clientY - startY) < 6) return;
+              dragging = true;
+              item.classList.add('eb-dragging');
+            }
+            ev.preventDefault();
+            /* hide the dragged tile from hit-testing just for this read so
+             * elementFromPoint returns the tile underneath */
+            item.style.pointerEvents = 'none';
+            var over = document.elementFromPoint(ev.clientX, ev.clientY);
+            item.style.pointerEvents = '';
+            var overItem = over && over.closest(cfg.item);
+            if (!overItem || overItem === item || overItem.parentNode !== container) return;
+            var r = overItem.getBoundingClientRect();
+            var after = (ev.clientY - r.top) > r.height / 2;
+            container.insertBefore(item, after ? overItem.nextSibling : overItem);
+            arranged[cfg.kind] = true;
+          };
+          var onUp = function () {
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            document.removeEventListener('pointercancel', onUp);
+            if (dragging) { item.classList.remove('eb-dragging'); dirtyCount(); }
+          };
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+          document.addEventListener('pointercancel', onUp);
         });
-        grip.addEventListener('pointermove', function (e) {
-          if (!dragging) return;
-          var over = document.elementFromPoint(e.clientX, e.clientY);
-          var overItem = over && over.closest(cfg.item);
-          if (!overItem || overItem === item || overItem.parentNode !== container) return;
-          var r = overItem.getBoundingClientRect();
-          var after = (e.clientY - r.top) > r.height / 2;
-          container.insertBefore(item, after ? overItem.nextSibling : overItem);
-          arranged[cfg.kind] = true;
-        });
-        var endDrag = function () {
-          if (!dragging) return;
-          dragging = false;
-          item.classList.remove('eb-dragging');
-          dirtyCount();
-        };
-        grip.addEventListener('pointerup', endDrag);
-        grip.addEventListener('pointercancel', endDrag);
       });
     });
   }
