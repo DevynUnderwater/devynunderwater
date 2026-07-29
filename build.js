@@ -656,6 +656,9 @@ function notFound() {
 
 /* ---------------- SEO files ---------------- */
 function seoFiles(slugs) {
+  /* CNAME: binds this Pages deploy to the custom domain so GitHub keeps the
+     Let's Encrypt cert provisioned. Bare host only — no scheme, no slash. */
+  write('CNAME', DOMAIN.replace(/^https?:\/\//, '').replace(/\/$/, ''));
   write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${slugs.map(s => `  <url><loc>${DOMAIN}${s}</loc><lastmod>2026-07-24</lastmod></url>`).join('\n')}
