@@ -1,11 +1,11 @@
 # Handoff: hosting + editing entirely on Devyn's GitHub
 
-Written 2026-07-25. Production hosting is GitHub Pages (built by
-`.github/workflows/build-deploy.yml` on every push to `main`). Netlify no
-longer builds anything (`netlify.toml` has `ignore = "exit 0"`); its frozen
-deploy exists only to keep collecting contact-form submissions during the
-transition. Both editing surfaces (`/#edit` and `/admin`) commit straight to
-GitHub with a personal access token — no Netlify Identity, no Git Gateway.
+Written 2026-07-25 (updated 2026-07-28: fully off Netlify). Production hosting
+is GitHub Pages (built by `.github/workflows/build-deploy.yml` on every push to
+`main`). Netlify is entirely removed — no `netlify.toml`, no functions; the
+contact form posts to Web3Forms. Both editing surfaces (`/#edit` and `/admin`)
+commit straight to GitHub with a personal access token — no Netlify Identity,
+no Git Gateway.
 
 ## 1. Transfer the repo to her account — ✅ DONE 2026-07-25
 
@@ -63,12 +63,9 @@ www + both record sets, apex → www redirects automatically.
 
 ## 4. Loose ends
 
-- **Contact form** posts to the frozen Netlify deploy
-  (`devynunderwater.netlify.app`) — works, free, unlimited, but goes down if
-  the Netlify team hits its credit cap (resets Aug 24) and the thank-you page
-  shows the netlify.app URL. Proper fix when convenient: a Web3Forms access
-  key (free, tied to her email, 5-minute swap in `build.js` contactPage) —
-  then the Netlify site/team can be deleted entirely.
+- **Contact form** posts to Web3Forms → devynunderwater@gmail.com (access key
+  in `site.json` `web3formsKey`). Fully off Netlify; the old Netlify site/team
+  can be deleted.
 - **GH Pages doesn't read `_redirects`/`_headers`** — build.js still writes
   them; they're inert. Long-lived asset caching relies on the `?v=` hashes,
   which the build already maintains.

@@ -50,7 +50,7 @@ filters, and lightbox automatically. New collection? Add it to `collections` fir
 filter buttons and About-page dive log update themselves.
 
 ## Before launch (client/Kevin)
-- [ ] Devyn's real email → `site.json → email` (contact form: Netlify Forms — activates on Netlify deploy; submissions land in the Netlify dashboard + email notification)
+- [ ] Contact form → Web3Forms (`site.json → web3formsKey`); submissions email straight to devynunderwater@gmail.com
 - [ ] Devyn's socials → `site.json → socials` (footer renders them automatically)
 - [ ] Review photo TITLES + species names in `site.json → gallery` (I labeled conservatively — she'll know her subjects)
 - [ ] Review draft copy (hero sub, about, product stories) — written in her voice, flagged for her edit

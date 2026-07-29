@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Local backend for the visual editor (#edit mode) — applies edits to the
  * working tree and rebuilds. Run: node local-edit-server.mjs  (port 8791)
- * Production uses netlify/functions/save-edits.mjs instead.
+ * Production commits straight to GitHub via the editor's PAT (see static/js/edit.js).
  */
 import http from 'http';
 import fs from 'fs';
